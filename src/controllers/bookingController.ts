@@ -106,6 +106,7 @@ export const setPaymentDetails = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'Booking not found' });
         }
 
+        // Debugging statement to check if booking has all personal details
         console.log("Retrieved booking details:", {
             firstName: booking.firstName,
             lastName: booking.lastName,
@@ -115,7 +116,6 @@ export const setPaymentDetails = async (req: Request, res: Response) => {
             city: booking.city,
             postalCode: booking.postalCode,
         });
-          // <-- Add this line for debugging
 
         // Check for required personal details
         const missingFields = [];
@@ -125,7 +125,6 @@ export const setPaymentDetails = async (req: Request, res: Response) => {
         if (!booking.email) missingFields.push('email');
         if (!booking.address) missingFields.push('address');
         if (!booking.city) missingFields.push('city');
-        if (!booking.postalCode) missingFields.push('postalCode');
 
         if (missingFields.length > 0) {
             console.error("Missing fields in booking details:", missingFields);
@@ -133,6 +132,9 @@ export const setPaymentDetails = async (req: Request, res: Response) => {
                 message: `Missing required personal details: ${missingFields.join(', ')}`,
             });
         }
+
+        // Debugging statement before setting payment details
+        console.log("All required personal details are present. Proceeding to set payment details.");
 
         // Proceed with setting payment details
         booking.paymentType = paymentType;
@@ -145,4 +147,5 @@ export const setPaymentDetails = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error setting payment details', error: error.message });
     }
 };
+
 
