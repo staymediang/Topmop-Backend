@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors"; // Import the cors module
 import "reflect-metadata"; 
 import { AppDataSource } from "./src/config/database"; 
 import authRoutes from "./src/routes/authRoutes"; 
@@ -7,15 +8,18 @@ import serviceRoutes from "./src/routes/admin/serviceRoutes";
 import dotenv from "dotenv"; 
 import path from "path"; 
 
-
 dotenv.config();
 
 const app = express();
+
+// Enable CORS for all origins
+app.use(cors()); // Allow requests from any origin during development
+
 app.use(express.json()); 
 
 // Define a route for the root path
 app.get('/', (req, res) => {
-    res.send('Welcome to the API!'); // Customize this message as needed
+    res.send('Welcome to the API!');
 });
 
 // Use defined routes
@@ -24,7 +28,7 @@ app.use("/api/booking", bookingRoutes);
 app.use("/api/admin", serviceRoutes);
 
 // Serve uploaded images
-app.use("/uploads", express.static(path.join(__dirname, "../uploads"))); // Adjust path as necessary
+app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Initialize the database and start the server
 AppDataSource.initialize()
