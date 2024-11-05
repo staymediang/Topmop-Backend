@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const cors_1 = __importDefault(require("cors")); // Import the cors module
 require("reflect-metadata");
 const database_1 = require("./src/config/database");
 const authRoutes_1 = __importDefault(require("./src/routes/authRoutes"));
@@ -13,17 +14,19 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
+// Enable CORS for all origins
+app.use((0, cors_1.default)()); // Allow requests from any origin during development
 app.use(express_1.default.json());
 // Define a route for the root path
 app.get('/', (req, res) => {
-    res.send('Welcome to the API!'); // Customize this message as needed
+    res.send('Welcome to the API!');
 });
 // Use defined routes
 app.use("/api/auth", authRoutes_1.default);
 app.use("/api/booking", bookingRoutes_1.default);
 app.use("/api/admin", serviceRoutes_1.default);
 // Serve uploaded images
-app.use("/uploads", express_1.default.static(path_1.default.join(__dirname, "../uploads"))); // Adjust path as necessary
+app.use("/uploads", express_1.default.static(path_1.default.join(__dirname, "../uploads")));
 // Initialize the database and start the server
 database_1.AppDataSource.initialize()
     .then(() => {
