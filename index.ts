@@ -1,3 +1,5 @@
+import https from "https";
+import fs from "fs";
 import express from "express";
 import cors from "cors"; // Import the cors module
 import "reflect-metadata"; 
@@ -30,16 +32,19 @@ app.use("/api/admin", serviceRoutes);
 // Serve uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-// Initialize the database and start the server
+// Load SSL credentials
+const sslOptions = {
+    key: fs.readFileSync("/etc/ssl/private/selfsigned.key"),
+    cert: fs.readFileSync("/etc/ssl/certs/selfsigned.crt")
+};
+
+// Initialize database and start the server with HTTPS
 AppDataSource.initialize()
     .then(() => {
         console.log("Database connected");
-        
-        const port = process.env.PORT || 5001;
-        app.listen(port, () => {
-            console.log(`Server running on port ${port}`);
+
+        https.createServer(sslOptions, app).listen(process.env.PORT || 5001, () => {
+            console.log("HTTPS Server running on port", process.env.PORT || 5001);
         });
     })
-    .catch(error => {
-        console.error("Database connection error: ", error);
-    });
+    .catch((error) => console.error("Database connection error: ", error));
