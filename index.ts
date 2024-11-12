@@ -14,6 +14,8 @@ dotenv.config();
 
 const app = express();
 
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5001;
+
 // Enable CORS for all origins
 app.use(cors()); // Allow requests from any origin during development
 
@@ -34,8 +36,8 @@ app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
 // Load SSL credentials
 const sslOptions = {
-    key: fs.readFileSync("/etc/ssl/private/selfsigned.key"),
-    cert: fs.readFileSync("/etc/ssl/certs/selfsigned.crt")
+    key: fs.readFileSync("/etc/nginx/ssl/nginx-selfsigned.key"),
+    cert: fs.readFileSync("/etc/nginx/ssl/nginx-selfsigned.crt")
 };
 
 // Initialize database and start the server with HTTPS
@@ -43,8 +45,8 @@ AppDataSource.initialize()
     .then(() => {
         console.log("Database connected");
 
-        https.createServer(sslOptions, app).listen(process.env.PORT || 5001, () => {
-            console.log("HTTPS Server running on port", process.env.PORT || 5001);
+        https.createServer(sslOptions, app).listen(port, '0.0.0.0', () => {
+            console.log("HTTPS Server running on port", port);
         });
     })
     .catch((error) => console.error("Database connection error: ", error));
