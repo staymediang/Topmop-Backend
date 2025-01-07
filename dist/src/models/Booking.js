@@ -11,6 +11,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Booking = void 0;
 const typeorm_1 = require("typeorm");
+const User_1 = require("./User");
 let Booking = class Booking {
 };
 exports.Booking = Booking;
@@ -59,27 +60,27 @@ __decorate([
     __metadata("design:type", String)
 ], Booking.prototype, "referralSource", void 0);
 __decorate([
-    (0, typeorm_1.Column)('varchar', { length: 100 }),
+    (0, typeorm_1.Column)('varchar', { length: 100, nullable: true }),
     __metadata("design:type", String)
 ], Booking.prototype, "firstName", void 0);
 __decorate([
-    (0, typeorm_1.Column)('varchar', { length: 100 }),
+    (0, typeorm_1.Column)('varchar', { length: 100, nullable: true }),
     __metadata("design:type", String)
 ], Booking.prototype, "lastName", void 0);
 __decorate([
-    (0, typeorm_1.Column)('varchar', { length: 15 }),
+    (0, typeorm_1.Column)('varchar', { length: 15, nullable: true }),
     __metadata("design:type", String)
 ], Booking.prototype, "contactNumber", void 0);
 __decorate([
-    (0, typeorm_1.Column)('varchar', { length: 100 }),
+    (0, typeorm_1.Column)('varchar', { length: 100, nullable: true }),
     __metadata("design:type", String)
 ], Booking.prototype, "email", void 0);
 __decorate([
-    (0, typeorm_1.Column)('text'),
+    (0, typeorm_1.Column)('text', { nullable: true }),
     __metadata("design:type", String)
 ], Booking.prototype, "address", void 0);
 __decorate([
-    (0, typeorm_1.Column)('varchar', { length: 50 }),
+    (0, typeorm_1.Column)('varchar', { length: 50, nullable: true }),
     __metadata("design:type", String)
 ], Booking.prototype, "city", void 0);
 __decorate([
@@ -102,6 +103,10 @@ __decorate([
     (0, typeorm_1.UpdateDateColumn)(),
     __metadata("design:type", Date)
 ], Booking.prototype, "updatedAt", void 0);
+__decorate([
+    (0, typeorm_1.ManyToOne)(() => User_1.User, (user) => user.bookings, { nullable: false }),
+    __metadata("design:type", User_1.User)
+], Booking.prototype, "user", void 0);
 exports.Booking = Booking = __decorate([
     (0, typeorm_1.Entity)('bookings')
 ], Booking);

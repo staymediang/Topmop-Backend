@@ -3,6 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const https_1 = __importDefault(require("https"));
+const fs_1 = __importDefault(require("fs"));
 const express_1 = __importDefault(require("express"));
 const cors_1 = __importDefault(require("cors")); // Import the cors module
 require("reflect-metadata");
@@ -14,6 +16,7 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5001;
 // Enable CORS for all origins
 app.use((0, cors_1.default)()); // Allow requests from any origin during development
 app.use(express_1.default.json());
@@ -27,15 +30,17 @@ app.use("/api/booking", bookingRoutes_1.default);
 app.use("/api/admin", serviceRoutes_1.default);
 // Serve uploaded images
 app.use("/uploads", express_1.default.static(path_1.default.join(__dirname, "../uploads")));
-// Initialize the database and start the server
+// Load SSL credentials
+const sslOptions = {
+    key: fs_1.default.readFileSync("/etc/nginx/ssl/nginx-selfsigned.key"),
+    cert: fs_1.default.readFileSync("/etc/nginx/ssl/nginx-selfsigned.crt")
+};
+// Initialize database and start the server with HTTPS
 database_1.AppDataSource.initialize()
     .then(() => {
     console.log("Database connected");
-    const port = process.env.PORT || 5001;
-    app.listen(port, () => {
-        console.log(`Server running on port ${port}`);
+    https_1.default.createServer(sslOptions, app).listen(port, '0.0.0.0', () => {
+        console.log("HTTPS Server running on port", port);
     });
 })
-    .catch(error => {
-    console.error("Database connection error: ", error);
-});
+    .catch((error) => console.error("Database connection error: ", error));

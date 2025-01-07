@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.isSuperAdmin = exports.isAdmin = exports.verifyToken = void 0;
+exports.isBookingManager = exports.isSuperAdmin = exports.isAdmin = exports.verifyToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 // Middleware to verify token
 const verifyToken = (req, res, next) => {
@@ -36,3 +36,11 @@ const isSuperAdmin = (req, res, next) => {
     next();
 };
 exports.isSuperAdmin = isSuperAdmin;
+// Middleware to check if user is a booking manager
+const isBookingManager = (req, res, next) => {
+    if (req.user?.role !== "booking_manager" && req.user?.role !== "super admin") {
+        return res.status(403).json({ message: "Access restricted to booking manager or super admin only" });
+    }
+    next();
+};
+exports.isBookingManager = isBookingManager;

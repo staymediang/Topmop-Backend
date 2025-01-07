@@ -8,7 +8,6 @@ const database_1 = require("../config/database");
 const Service_1 = require("../models/Service");
 const path_1 = __importDefault(require("path"));
 const User_1 = require("../models/User");
-// Create a new service
 const createService = async (req, res) => {
     const { title, description } = req.body;
     const imageUrl = req.file ? path_1.default.join("uploads", req.file.filename) : null;
@@ -19,12 +18,11 @@ const createService = async (req, res) => {
         service.imageUrl = imageUrl;
         // Fetch the user by ID to set the createdBy field
         const userRepo = database_1.AppDataSource.getRepository(User_1.User);
-        const userId = req.user?.userId; // Get userId from the request
+        const userId = req.user?.userId; // userId is now a string
         if (!userId) {
             return res.status(400).json({ message: "User ID is required" });
         }
-        // Convert userId to a number before querying
-        const user = await userRepo.findOneBy({ id: parseInt(userId) });
+        const user = await userRepo.findOne({ where: { id: userId } }); // Query by string userId
         if (!user)
             return res.status(404).json({ message: "User not found" });
         service.createdBy = user; // Set the user instance
@@ -32,7 +30,8 @@ const createService = async (req, res) => {
         res.status(201).json({ message: "Service created successfully", service });
     }
     catch (error) {
-        res.status(500).json({ message: "Failed to create service", error });
+        console.error("Error creating service:", error);
+        res.status(500).json({ message: "Failed to create service", error: error.message });
     }
 };
 exports.createService = createService;

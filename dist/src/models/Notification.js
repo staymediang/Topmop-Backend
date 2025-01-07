@@ -9,38 +9,31 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Service = void 0;
+exports.Notification = void 0;
 const typeorm_1 = require("typeorm");
-const User_1 = require("./User"); // Admin model
-let Service = class Service {
+let Notification = class Notification {
 };
-exports.Service = Service;
+exports.Notification = Notification;
 __decorate([
     (0, typeorm_1.PrimaryGeneratedColumn)(),
     __metadata("design:type", Number)
-], Service.prototype, "id", void 0);
+], Notification.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ length: 100 }),
+    (0, typeorm_1.Column)('varchar', { length: 255 }),
     __metadata("design:type", String)
-], Service.prototype, "title", void 0);
+], Notification.prototype, "title", void 0);
 __decorate([
-    (0, typeorm_1.Column)("text"),
+    (0, typeorm_1.Column)('text'),
     __metadata("design:type", String)
-], Service.prototype, "description", void 0);
+], Notification.prototype, "message", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ nullable: true }) // Allows null if no image is uploaded
-    ,
-    __metadata("design:type", String)
-], Service.prototype, "imageUrl", void 0);
-__decorate([
-    (0, typeorm_1.ManyToOne)(() => User_1.User, (user) => user.services, { nullable: true, eager: false }) // Updated relation
-    ,
-    __metadata("design:type", User_1.User)
-], Service.prototype, "createdBy", void 0);
+    (0, typeorm_1.Column)('boolean', { default: true }),
+    __metadata("design:type", Boolean)
+], Notification.prototype, "isActive", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
-], Service.prototype, "createdAt", void 0);
-exports.Service = Service = __decorate([
-    (0, typeorm_1.Entity)()
-], Service);
+], Notification.prototype, "createdAt", void 0);
+exports.Notification = Notification = __decorate([
+    (0, typeorm_1.Entity)('notifications')
+], Notification);

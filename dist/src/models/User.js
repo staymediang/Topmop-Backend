@@ -12,12 +12,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.User = void 0;
 const typeorm_1 = require("typeorm");
 const Service_1 = require("./Service");
+const Booking_1 = require("./Booking");
 let User = class User {
 };
 exports.User = User;
 __decorate([
-    (0, typeorm_1.PrimaryGeneratedColumn)(),
-    __metadata("design:type", Number)
+    (0, typeorm_1.PrimaryGeneratedColumn)('uuid'),
+    __metadata("design:type", String)
 ], User.prototype, "id", void 0);
 __decorate([
     (0, typeorm_1.Column)({ length: 100 }),
@@ -28,11 +29,20 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ length: 15, nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "phoneNumber", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: "text", nullable: true }),
+    __metadata("design:type", String)
+], User.prototype, "address", void 0);
+__decorate([
     (0, typeorm_1.Column)(),
     __metadata("design:type", String)
 ], User.prototype, "password", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ default: "user" }),
+    (0, typeorm_1.Column)({ default: "user" }) // Default role
+    ,
     __metadata("design:type", String)
 ], User.prototype, "role", void 0);
 __decorate([
@@ -40,9 +50,17 @@ __decorate([
     __metadata("design:type", Date)
 ], User.prototype, "created_at", void 0);
 __decorate([
+    (0, typeorm_1.UpdateDateColumn)(),
+    __metadata("design:type", Date)
+], User.prototype, "updated_at", void 0);
+__decorate([
     (0, typeorm_1.OneToMany)(() => Service_1.Service, (service) => service.createdBy),
     __metadata("design:type", Array)
 ], User.prototype, "services", void 0);
+__decorate([
+    (0, typeorm_1.OneToMany)(() => Booking_1.Booking, (booking) => booking.user),
+    __metadata("design:type", Array)
+], User.prototype, "bookings", void 0);
 exports.User = User = __decorate([
     (0, typeorm_1.Entity)()
 ], User);
