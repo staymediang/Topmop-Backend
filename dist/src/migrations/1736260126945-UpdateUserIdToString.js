@@ -6,11 +6,29 @@ class UpdateUserIdToString1736260126945 {
         this.name = 'UpdateUserIdToString1736260126945';
     }
     async up(queryRunner) {
-        await queryRunner.query(`CREATE TABLE "user" ("id" uuid NOT NULL DEFAULT uuid_generate_v4(), "name" character varying(100) NOT NULL, "email" character varying NOT NULL, "phoneNumber" character varying(15), "address" text, "password" character varying NOT NULL, "role" character varying NOT NULL DEFAULT 'user', "created_at" TIMESTAMP NOT NULL DEFAULT now(), "updated_at" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "UQ_e12875dfb3b1d92d7d7c5377e22" UNIQUE ("email"), CONSTRAINT "PK_cace4a159ff9f2512dd42373760" PRIMARY KEY ("id"))`);
-        await queryRunner.query(`CREATE TABLE "notifications" ("id" SERIAL NOT NULL, "title" character varying(255) NOT NULL, "message" text NOT NULL, "isActive" boolean NOT NULL DEFAULT true, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), CONSTRAINT "PK_6a72c3c0f683f6462415e653c3a" PRIMARY KEY ("id"))`);
+        // Alter the "user" table instead of creating it again
+        await queryRunner.query(`
+            ALTER TABLE "user"
+            ALTER COLUMN "id" TYPE character varying USING id::text;  -- Change UUID to string
+            ALTER COLUMN "role" SET DEFAULT 'user';  -- Set default role if not already set
+        `);
+        // Create "notifications" table
+        await queryRunner.query(`
+            CREATE TABLE "notifications" (
+                "id" SERIAL NOT NULL, 
+                "title" character varying(255) NOT NULL, 
+                "message" text NOT NULL, 
+                "isActive" boolean NOT NULL DEFAULT true, 
+                "createdAt" TIMESTAMP NOT NULL DEFAULT now(), 
+                CONSTRAINT "PK_6a72c3c0f683f6462415e653c3a" PRIMARY KEY ("id")
+            )
+        `);
+        // Add userId to bookings
         await queryRunner.query(`ALTER TABLE "bookings" ADD "userId" uuid NOT NULL`);
+        // Modify columns in the "service" table
         await queryRunner.query(`ALTER TABLE "service" DROP COLUMN "createdById"`);
         await queryRunner.query(`ALTER TABLE "service" ADD "createdById" uuid`);
+        // Alter various columns in the "bookings" table
         await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "frequency" TYPE character varying(50)`);
         await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "preferredDay" TYPE character varying(20)`);
         await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "preferredTime" TYPE character varying(20)`);
@@ -27,6 +45,7 @@ class UpdateUserIdToString1736260126945 {
         await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "postalCode" TYPE character varying(20)`);
         await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "paymentType" TYPE character varying(20)`);
         await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "amount" SET NOT NULL`);
+        // Add foreign key constraints
         await queryRunner.query(`ALTER TABLE "service" ADD CONSTRAINT "FK_87cf55c0575ef49843d7bf29397" FOREIGN KEY ("createdById") REFERENCES "user"("id")`);
         await queryRunner.query(`ALTER TABLE "bookings" ADD CONSTRAINT "FK_38a69a58a323647f2e75eb994de" FOREIGN KEY ("userId") REFERENCES "user"("id")`);
     }
@@ -68,7 +87,6 @@ class UpdateUserIdToString1736260126945 {
         await queryRunner.query(`ALTER TABLE "service" ADD "createdById" uuid`);
         await queryRunner.query(`ALTER TABLE "bookings" DROP COLUMN "userId"`);
         await queryRunner.query(`DROP TABLE "notifications"`);
-        await queryRunner.query(`DROP TABLE "user"`);
     }
 }
 exports.UpdateUserIdToString1736260126945 = UpdateUserIdToString1736260126945;
