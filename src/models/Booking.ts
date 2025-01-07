@@ -4,7 +4,9 @@ import {
     Column,
     CreateDateColumn,
     UpdateDateColumn,
+    ManyToOne,
 } from 'typeorm';
+import { User } from './User';
 
 @Entity('bookings')
 export class Booking {
@@ -12,18 +14,17 @@ export class Booking {
     id: string;
 
     @Column('varchar', { length: 50 })
-    frequency: string; // e.g., 'Weekly', 'Fortnightly', 'One-time'
+    frequency: string;
 
     @Column('int')
     hoursRequired: number;
 
     @Column('varchar', { length: 20, nullable: true })
-    preferredDay: string; // e.g., 'Monday', 'Tuesday'
+    preferredDay: string;
 
     @Column('varchar', { length: 20, nullable: true })
-    preferredTime: string; // e.g., 'Morning', 'Afternoon'
+    preferredTime: string;
 
-    // Requirements
     @Column({ type: 'boolean', default: false })
     meetCleanerFirst: boolean;
 
@@ -43,22 +44,22 @@ export class Booking {
     referralSource: string;
 
     // Personal Details
-    @Column('varchar', { length: 100 })
+    @Column('varchar', { length: 100, nullable: true })
     firstName: string;
 
-    @Column('varchar', { length: 100 })
+    @Column('varchar', { length: 100, nullable: true })
     lastName: string;
 
-    @Column('varchar', { length: 15 })
+    @Column('varchar', { length: 15, nullable: true })
     contactNumber: string;
 
-    @Column('varchar', { length: 100 })
+    @Column('varchar', { length: 100, nullable: true })
     email: string;
 
-    @Column('text')
+    @Column('text', { nullable: true })
     address: string;
 
-    @Column('varchar', { length: 50 })
+    @Column('varchar', { length: 50, nullable: true })
     city: string;
 
     @Column('varchar', { length: 20, nullable: true })
@@ -66,7 +67,7 @@ export class Booking {
 
     // Payment Details
     @Column('varchar', { length: 20 })
-    paymentType: string; // e.g., 'card' or 'bank transfer'
+    paymentType: string;
 
     @Column({ type: 'decimal', precision: 10, scale: 2 })
     amount: number;
@@ -76,4 +77,7 @@ export class Booking {
 
     @UpdateDateColumn()
     updatedAt: Date;
+
+    @ManyToOne(() => User, (user) => user.bookings, { nullable: false })
+    user: User;
 }

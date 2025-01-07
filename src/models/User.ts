@@ -1,26 +1,41 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, OneToMany } from "typeorm";
 import { Service } from "./Service";
+import { Booking } from './Booking';
+
+type UserRole = "user" | "admin" | "super admin" | "booking_manager";
 
 @Entity()
 export class User {
-    @PrimaryGeneratedColumn()
-    id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-    @Column({ length: 100 })
-    name: string;
+  @Column({ length: 100 })
+  name: string;
 
-    @Column({ unique: true })
-    email: string;
+  @Column({ unique: true })
+  email: string;
 
-    @Column()
-    password: string;
+  @Column({ length: 15, nullable: true })
+  phoneNumber: string;
 
-    @Column({ default: "user" })
-    role: string;
+  @Column({ type: "text", nullable: true })
+  address: string;
 
-    @CreateDateColumn()
-    created_at: Date;
+  @Column()
+  password: string;
 
-    @OneToMany(() => Service, (service) => service.createdBy)
-    services: Service[];
+  @Column({ default: "user" }) // Default role
+  role: UserRole;
+
+  @CreateDateColumn()
+  created_at: Date;
+
+  @UpdateDateColumn()
+  updated_at: Date;
+
+  @OneToMany(() => Service, (service) => service.createdBy)
+  services: Service[];
+
+  @OneToMany(() => Booking, (booking) => booking.user)
+  bookings: Booking[];
 }

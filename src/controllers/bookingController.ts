@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import { Booking } from '../models/Booking';
 import { AppDataSource } from '../config/database';
+import { User } from '../models/User';
+import { MoreThan, LessThan } from 'typeorm';
 
 export const setFrequency = async (req: Request, res: Response) => {
     const { frequency, hoursRequired, preferredDay, preferredTime } = req.body;
@@ -49,20 +51,21 @@ export const setRequirements = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'Booking not found' });
         }
 
-        booking.meetCleanerFirst = meetCleanerFirst;
-        booking.cleaningStartDate = cleaningStartDate;
-        booking.needsIroning = needsIroning;
+        booking.meetCleanerFirst = !!meetCleanerFirst; // Convert to boolean
+        booking.cleaningStartDate = cleaningStartDate ? new Date(cleaningStartDate) : null; // Ensure Date type
+        booking.needsIroning = !!needsIroning;
         booking.accessInstructions = accessInstructions;
         booking.additionalInfo = additionalInfo;
         booking.referralSource = referralSource;
 
         await bookingRepo.save(booking);
-        res.status(200).json({ message: 'Requirements set' });
+        res.status(200).json({ message: 'Requirements set successfully' });
     } catch (error) {
-        console.error("Error details:", error);
+        console.error("Error setting requirements:", error);
         res.status(500).json({ message: 'Error setting requirements', error: error.message });
     }
 };
+
 
 export const setPersonalDetails = async (req: Request, res: Response) => {
     const { bookingId, firstName, lastName, contactNumber, email, address, city, postalCode } = req.body;
@@ -149,3 +152,224 @@ export const setPaymentDetails = async (req: Request, res: Response) => {
 };
 
 
+export const getProfile = async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.userId; // Ensure this is treated as a string
+      const bookingRepo = AppDataSource.getRepository(Booking);
+  
+      const profile = await bookingRepo.findOne({ where: { user: { id: userId } } }); // Use the relation properly
+  
+      if (!profile) {
+        return res.status(404).json({ message: 'Profile not found' });
+      }
+  
+      const { firstName, lastName, email, contactNumber, address, city, postalCode } = profile;
+      res.status(200).json({ firstName, lastName, email, contactNumber, address, city, postalCode });
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      res.status(500).json({ message: 'Error fetching profile', error: error.message });
+    }
+  };
+  
+  export const updateProfile = async (req: Request, res: Response) => {
+    const { firstName, lastName, contactNumber, email, address, city, postalCode } = req.body;
+  
+    try {
+      const userId = req.user?.userId;
+      const bookingRepo = AppDataSource.getRepository(Booking);
+  
+      const profile = await bookingRepo.findOne({ where: { user: { id: userId } } }); // Use the relation properly
+  
+      if (!profile) {
+        return res.status(404).json({ message: 'Profile not found' });
+      }
+  
+      profile.firstName = firstName || profile.firstName;
+      profile.lastName = lastName || profile.lastName;
+      profile.contactNumber = contactNumber || profile.contactNumber;
+      profile.email = email || profile.email;
+      profile.address = address || profile.address;
+      profile.city = city || profile.city;
+      profile.postalCode = postalCode || profile.postalCode;
+  
+      await bookingRepo.save(profile);
+      res.status(200).json({ message: 'Profile updated successfully', profile });
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      res.status(500).json({ message: 'Error updating profile', error: error.message });
+    }
+  };
+  
+
+export const getBookingDetails = async (req: Request, res: Response) => {
+    const { bookingId } = req.params;
+
+    try {
+        const bookingRepo = AppDataSource.getRepository(Booking);
+        const booking = await bookingRepo.findOne({ where: { id: bookingId } });
+
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        res.status(200).json({ booking });
+    } catch (error) {
+        console.error("Error fetching booking details:", error);
+        res.status(500).json({ message: 'Error fetching booking details', error: error.message });
+    }
+};
+
+export const getBookingHistory = async (req: Request, res: Response) => {
+    const userId = req.user?.userId?.toString(); // Ensure it's a string
+    const { year, month } = req.query;
+
+    try {
+        const bookingRepo = AppDataSource.getRepository(Booking);
+
+        const queryOptions: any = {
+            where: { user: { id: userId } },
+            relations: ['user'],
+        };
+
+        if (year && month) {
+            const startDate = new Date(Number(year), Number(month) - 1, 1);
+            const endDate = new Date(Number(year), Number(month), 0, 23, 59, 59);
+        
+            queryOptions.where = {
+                ...queryOptions.where,
+                createdAt: MoreThan(startDate) && LessThan(endDate), // Combine conditions
+            };
+        }
+        
+
+        const bookings = await bookingRepo.find(queryOptions);
+
+        res.status(200).json({ bookings });
+    } catch (error) {
+        console.error("Error fetching booking history:", error);
+        res.status(500).json({ message: 'Error fetching booking history', error: error.message });
+    }
+};
+
+
+
+export const getUpcomingBookings = async (req: Request, res: Response) => {
+    const userId = req.user?.userId?.toString(); // Ensure it's a string
+
+    try {
+        const bookingRepo = AppDataSource.getRepository(Booking);
+        const upcomingBookings = await bookingRepo.find({
+            where: {
+                user: { id: userId }, // Ensure `user` is treated as a relation
+                cleaningStartDate: MoreThan(new Date()),
+            },
+            relations: ['user'], // Include related user data
+        });
+
+        res.status(200).json({ upcomingBookings });
+    } catch (error) {
+        console.error("Error fetching upcoming bookings:", error);
+        res.status(500).json({ message: 'Error fetching upcoming bookings', error: error.message });
+    }
+};
+
+// Get Booking Summary
+export const getBookingSummary = async (req: Request, res: Response) => {
+    const { bookingId } = req.params;
+
+    try {
+        const bookingRepo = AppDataSource.getRepository(Booking);
+        const booking = await bookingRepo.findOne({ where: { id: bookingId } });
+
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        res.status(200).json({
+            frequency: booking.frequency,
+            hoursRequired: booking.hoursRequired,
+            preferredDay: booking.preferredDay,
+            preferredTime: booking.preferredTime,
+            meetCleanerFirst: booking.meetCleanerFirst,
+            cleaningStartDate: booking.cleaningStartDate,
+            needsIroning: booking.needsIroning,
+            accessInstructions: booking.accessInstructions,
+            additionalInfo: booking.additionalInfo,
+            referralSource: booking.referralSource,
+            paymentType: booking.paymentType,
+            amount: booking.amount,
+            createdAt: booking.createdAt,
+        });
+    } catch (error) {
+        console.error("Error fetching booking summary:", error);
+        res.status(500).json({ message: 'Error fetching booking summary', error: error.message });
+    }
+};
+
+
+// Admin: Cancel Booking
+export const cancelBooking = async (req: Request, res: Response) => {
+    const { bookingId } = req.params;
+
+    try {
+        const bookingRepo = AppDataSource.getRepository(Booking);
+        const booking = await bookingRepo.findOne({ where: { id: bookingId } });
+
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        await bookingRepo.remove(booking);
+        res.status(200).json({ message: 'Booking cancelled successfully' });
+    } catch (error) {
+        console.error("Error cancelling booking:", error);
+        res.status(500).json({ message: 'Error cancelling booking', error: error.message });
+    }
+};
+
+// Admin: Get Ongoing Bookings
+export const getOngoingBookings = async (req: Request, res: Response) => {
+    try {
+        const bookingRepo = AppDataSource.getRepository(Booking);
+        const ongoingBookings = await bookingRepo.find({
+            where: { cleaningStartDate: LessThan(new Date()), paymentType: 'pending' }, // Assuming "pending" means ongoing
+            relations: ['user'],
+        });
+
+        res.status(200).json({ ongoingBookings });
+    } catch (error) {
+        console.error("Error fetching ongoing bookings:", error);
+        res.status(500).json({ message: 'Error fetching ongoing bookings', error: error.message });
+    }
+};
+// Admin: Get Completed Bookings
+export const getCompletedBookings = async (req: Request, res: Response) => {
+    try {
+        const bookingRepo = AppDataSource.getRepository(Booking);
+        const completedBookings = await bookingRepo.find({
+            where: { paymentType: 'completed' }, // Assuming "completed" status
+            relations: ['user'],
+        });
+
+        res.status(200).json({ completedBookings });
+    } catch (error) {
+        console.error("Error fetching completed bookings:", error);
+        res.status(500).json({ message: 'Error fetching completed bookings', error: error.message });
+    }
+};
+
+// Admin: Get New Bookings
+export const getNewBookings = async (req: Request, res: Response) => {
+    try {
+        const bookingRepo = AppDataSource.getRepository(Booking);
+        const newBookings = await bookingRepo.find({
+            where: { paymentType: 'pending' }, // Pending bookings
+            relations: ['user'],
+        });
+
+        res.status(200).json({ newBookings });
+    } catch (error) {
+        console.error("Error fetching new bookings:", error);
+        res.status(500).json({ message: 'Error fetching new bookings', error: error.message });
+    }
+};

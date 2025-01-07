@@ -1,4 +1,3 @@
-// src/middleware/authMiddleware.ts
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 
@@ -9,8 +8,8 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload & {
-      userId: string;
-      role: "user" | "admin" | "super admin";
+      userId: string; // Change this to string
+      role: "user" | "admin" | "super admin" | "booking_manager";
     };
     req.user = decoded;
     next();
@@ -31,6 +30,14 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
 export const isSuperAdmin = (req: Request, res: Response, next: NextFunction) => {
   if (req.user?.role !== "super admin") {
     return res.status(403).json({ message: "Access restricted to super admin only" });
+  }
+  next();
+};
+
+// Middleware to check if user is a booking manager
+export const isBookingManager = (req: Request, res: Response, next: NextFunction) => {
+  if (req.user?.role !== "booking_manager" && req.user?.role !== "super admin") {
+    return res.status(403).json({ message: "Access restricted to booking manager or super admin only" });
   }
   next();
 };

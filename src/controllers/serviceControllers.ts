@@ -4,39 +4,37 @@ import { Service } from "../models/Service";
 import path from "path";
 import { User } from "../models/User";
 
-// Create a new service
 export const createService = async (req: Request, res: Response) => {
-    const { title, description } = req.body;
-    const imageUrl = req.file ? path.join("uploads", req.file.filename) : null;
-  
-    try {
-      const service = new Service();
-      service.title = title;
-      service.description = description;
-      service.imageUrl = imageUrl;
-  
-      // Fetch the user by ID to set the createdBy field
-const userRepo = AppDataSource.getRepository(User);
-const userId = req.user?.userId; // Get userId from the request
+  const { title, description } = req.body;
+  const imageUrl = req.file ? path.join("uploads", req.file.filename) : null;
 
-if (!userId) {
-  return res.status(400).json({ message: "User ID is required" });
-}
+  try {
+    const service = new Service();
+    service.title = title;
+    service.description = description;
+    service.imageUrl = imageUrl;
 
-// Convert userId to a number before querying
-const user = await userRepo.findOneBy({ id: parseInt(userId) });
-  
-      if (!user) return res.status(404).json({ message: "User not found" });
-  
-      service.createdBy = user; // Set the user instance
-  
-      await AppDataSource.getRepository(Service).save(service);
-      res.status(201).json({ message: "Service created successfully", service });
-    } catch (error) {
-      res.status(500).json({ message: "Failed to create service", error });
+    // Fetch the user by ID to set the createdBy field
+    const userRepo = AppDataSource.getRepository(User);
+    const userId = req.user?.userId; // userId is now a string
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
     }
-  };
-  
+
+    const user = await userRepo.findOne({ where: { id: userId } }); // Query by string userId
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    service.createdBy = user; // Set the user instance
+
+    await AppDataSource.getRepository(Service).save(service);
+    res.status(201).json({ message: "Service created successfully", service });
+  } catch (error) {
+    console.error("Error creating service:", error);
+    res.status(500).json({ message: "Failed to create service", error: error.message });
+  }
+};
 
 // Get all services
 export const getAllServices = async (_req: Request, res: Response) => {
