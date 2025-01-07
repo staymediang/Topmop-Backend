@@ -6,58 +6,64 @@ class UpdateUserIdToString1736260126945 {
         this.name = 'UpdateUserIdToString1736260126945';
     }
     async up(queryRunner) {
-        // Alter "user" table
+        // Update the data type of the `id` column in the `user` table
         await queryRunner.query(`
             ALTER TABLE "user"
-            ALTER COLUMN "id" SET DATA TYPE character varying USING "id"::text;  -- Change UUID to string
+            ALTER COLUMN "id" SET DATA TYPE character varying USING "id"::text;
         `);
-        await queryRunner.query(`
-            ALTER TABLE "user"
-            ALTER COLUMN "role" SET DEFAULT 'user';  -- Set default role if not already set
-        `);
-        // Create "notifications" table
-        await queryRunner.query(`
-            CREATE TABLE "notifications" (
-                "id" SERIAL NOT NULL, 
-                "title" character varying(255) NOT NULL, 
-                "message" text NOT NULL, 
-                "isActive" boolean NOT NULL DEFAULT true, 
-                "createdAt" TIMESTAMP NOT NULL DEFAULT now(), 
-                CONSTRAINT "PK_6a72c3c0f683f6462415e653c3a" PRIMARY KEY ("id")
-            )
-        `);
-        // Add userId to "bookings"
-        await queryRunner.query(`ALTER TABLE "bookings" ADD "userId" character varying NOT NULL`);
-        // Modify columns in the "service" table
-        await queryRunner.query(`ALTER TABLE "service" DROP COLUMN "createdById"`);
-        await queryRunner.query(`ALTER TABLE "service" ADD "createdById" character varying`);
-        // Alter various columns in "bookings"
-        await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "frequency" TYPE character varying(50)`);
-        await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "preferredDay" TYPE character varying(20)`);
-        await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "preferredTime" TYPE character varying(20)`);
-        await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "cleaningStartDate" TYPE date`);
-        await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "accessInstructions" TYPE text`);
-        await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "additionalInfo" TYPE text`);
-        await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "referralSource" TYPE character varying(100)`);
-        await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "firstName" TYPE character varying(100)`);
-        await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "lastName" TYPE character varying(100)`);
-        await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "contactNumber" TYPE character varying(15)`);
-        await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "email" TYPE character varying(100)`);
-        await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "address" TYPE text`);
-        await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "city" TYPE character varying(50)`);
-        await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "postalCode" TYPE character varying(20)`);
-        await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "paymentType" TYPE character varying(20)`);
-        await queryRunner.query(`ALTER TABLE "bookings" ALTER COLUMN "amount" SET NOT NULL`);
-        // Add foreign key constraints
+        // Update all columns referencing `user(id)` to match the new data type
         await queryRunner.query(`
             ALTER TABLE "service"
-            ADD CONSTRAINT "FK_87cf55c0575ef49843d7bf29397" 
-            FOREIGN KEY ("createdById") REFERENCES "user"("id")
+            ALTER COLUMN "createdById" SET DATA TYPE character varying USING "createdById"::text;
         `);
         await queryRunner.query(`
             ALTER TABLE "bookings"
-            ADD CONSTRAINT "FK_38a69a58a323647f2e75eb994de" 
-            FOREIGN KEY ("userId") REFERENCES "user"("id")
+            ALTER COLUMN "userId" SET DATA TYPE character varying USING "userId"::text;
+        `);
+        // Set the default role for the user table
+        await queryRunner.query(`
+            ALTER TABLE "user"
+            ALTER COLUMN "role" SET DEFAULT 'user';
+        `);
+        // Create the "notifications" table
+        await queryRunner.query(`
+            CREATE TABLE "notifications" (
+                "id" SERIAL NOT NULL,
+                "title" character varying(255) NOT NULL,
+                "message" text NOT NULL,
+                "isActive" boolean NOT NULL DEFAULT true,
+                "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
+                CONSTRAINT "PK_6a72c3c0f683f6462415e653c3a" PRIMARY KEY ("id")
+            )
+        `);
+        // Modify columns in the bookings table
+        await queryRunner.query(`
+            ALTER TABLE "bookings"
+            ALTER COLUMN "frequency" TYPE character varying(50),
+            ALTER COLUMN "preferredDay" TYPE character varying(20),
+            ALTER COLUMN "preferredTime" TYPE character varying(20),
+            ALTER COLUMN "cleaningStartDate" TYPE date,
+            ALTER COLUMN "accessInstructions" TYPE text,
+            ALTER COLUMN "additionalInfo" TYPE text,
+            ALTER COLUMN "referralSource" TYPE character varying(100),
+            ALTER COLUMN "firstName" TYPE character varying(100),
+            ALTER COLUMN "lastName" TYPE character varying(100),
+            ALTER COLUMN "contactNumber" TYPE character varying(15),
+            ALTER COLUMN "email" TYPE character varying(100),
+            ALTER COLUMN "address" TYPE text,
+            ALTER COLUMN "city" TYPE character varying(50),
+            ALTER COLUMN "postalCode" TYPE character varying(20),
+            ALTER COLUMN "paymentType" TYPE character varying(20),
+            ALTER COLUMN "amount" SET NOT NULL;
+        `);
+        // Add the foreign key constraints
+        await queryRunner.query(`
+            ALTER TABLE "service"
+            ADD CONSTRAINT "FK_87cf55c0575ef49843d7bf29397" FOREIGN KEY ("createdById") REFERENCES "user"("id");
+        `);
+        await queryRunner.query(`
+            ALTER TABLE "bookings"
+            ADD CONSTRAINT "FK_38a69a58a323647f2e75eb994de" FOREIGN KEY ("userId") REFERENCES "user"("id");
         `);
     }
     async down(queryRunner) {
