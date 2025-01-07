@@ -57,6 +57,9 @@ class UpdateUserIdToString1736260126945 {
             ALTER COLUMN "role" SET DEFAULT 'user';
         `);
         await queryRunner.query(`
+            ALTER TABLE "bookings" ADD COLUMN "userId" uuid;
+        `);
+        await queryRunner.query(`
             CREATE TABLE "notifications" (
                 "id" SERIAL NOT NULL,
                 "title" character varying(255) NOT NULL,
