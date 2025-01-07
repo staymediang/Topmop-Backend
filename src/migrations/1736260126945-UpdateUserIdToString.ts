@@ -4,30 +4,46 @@ export class UpdateUserIdToString1736260126945 implements MigrationInterface {
     name = 'UpdateUserIdToString1736260126945'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        // Update the data type of the `id` column in the `user` table
+        // Drop foreign key constraints referencing user.id
+        await queryRunner.query(`
+            ALTER TABLE "service" DROP CONSTRAINT "FK_87cf55c0575ef49843d7bf29397";
+        `);
+        await queryRunner.query(`
+            ALTER TABLE "bookings" DROP CONSTRAINT "FK_38a69a58a323647f2e75eb994de";
+        `);
+    
+        // Change the data type of the "id" column in the "user" table
         await queryRunner.query(`
             ALTER TABLE "user"
             ALTER COLUMN "id" SET DATA TYPE character varying USING "id"::text;
         `);
     
-        // Update all columns referencing `user(id)` to match the new data type
+        // Change the foreign key columns to match the new data type
         await queryRunner.query(`
             ALTER TABLE "service"
             ALTER COLUMN "createdById" SET DATA TYPE character varying USING "createdById"::text;
         `);
-    
         await queryRunner.query(`
             ALTER TABLE "bookings"
             ALTER COLUMN "userId" SET DATA TYPE character varying USING "userId"::text;
         `);
     
-        // Set the default role for the user table
+        // Add the foreign key constraints back
+        await queryRunner.query(`
+            ALTER TABLE "service"
+            ADD CONSTRAINT "FK_87cf55c0575ef49843d7bf29397" FOREIGN KEY ("createdById") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        `);
+        await queryRunner.query(`
+            ALTER TABLE "bookings"
+            ADD CONSTRAINT "FK_38a69a58a323647f2e75eb994de" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+        `);
+    
+        // Additional schema modifications for other columns
         await queryRunner.query(`
             ALTER TABLE "user"
             ALTER COLUMN "role" SET DEFAULT 'user';
         `);
     
-        // Create the "notifications" table
         await queryRunner.query(`
             CREATE TABLE "notifications" (
                 "id" SERIAL NOT NULL,
@@ -36,10 +52,9 @@ export class UpdateUserIdToString1736260126945 implements MigrationInterface {
                 "isActive" boolean NOT NULL DEFAULT true,
                 "createdAt" TIMESTAMP NOT NULL DEFAULT now(),
                 CONSTRAINT "PK_6a72c3c0f683f6462415e653c3a" PRIMARY KEY ("id")
-            )
+            );
         `);
     
-        // Modify columns in the bookings table
         await queryRunner.query(`
             ALTER TABLE "bookings"
             ALTER COLUMN "frequency" TYPE character varying(50),
@@ -59,19 +74,7 @@ export class UpdateUserIdToString1736260126945 implements MigrationInterface {
             ALTER COLUMN "paymentType" TYPE character varying(20),
             ALTER COLUMN "amount" SET NOT NULL;
         `);
-    
-        // Add the foreign key constraints
-        await queryRunner.query(`
-            ALTER TABLE "service"
-            ADD CONSTRAINT "FK_87cf55c0575ef49843d7bf29397" FOREIGN KEY ("createdById") REFERENCES "user"("id");
-        `);
-    
-        await queryRunner.query(`
-            ALTER TABLE "bookings"
-            ADD CONSTRAINT "FK_38a69a58a323647f2e75eb994de" FOREIGN KEY ("userId") REFERENCES "user"("id");
-        `);
     }
-    
     
 
     public async down(queryRunner: QueryRunner): Promise<void> {
