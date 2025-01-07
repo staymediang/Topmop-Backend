@@ -6,13 +6,28 @@ class UpdateUserIdToString1736260126945 {
         this.name = 'UpdateUserIdToString1736260126945';
     }
     async up(queryRunner) {
-        // Drop foreign key constraints referencing user.id
-        await queryRunner.query(`
-            ALTER TABLE "service" DROP CONSTRAINT "FK_87cf55c0575ef49843d7bf29397";
+        // Check and drop the foreign key on "service"
+        const serviceConstraint = await queryRunner.query(`
+            SELECT conname
+            FROM pg_constraint
+            WHERE conrelid = 'service'::regclass AND conname = 'FK_87cf55c0575ef49843d7bf29397';
         `);
-        await queryRunner.query(`
-            ALTER TABLE "bookings" DROP CONSTRAINT "FK_38a69a58a323647f2e75eb994de";
+        if (serviceConstraint.length > 0) {
+            await queryRunner.query(`
+                ALTER TABLE "service" DROP CONSTRAINT "FK_87cf55c0575ef49843d7bf29397";
+            `);
+        }
+        // Check and drop the foreign key on "bookings"
+        const bookingsConstraint = await queryRunner.query(`
+            SELECT conname
+            FROM pg_constraint
+            WHERE conrelid = 'bookings'::regclass AND conname = 'FK_38a69a58a323647f2e75eb994de';
         `);
+        if (bookingsConstraint.length > 0) {
+            await queryRunner.query(`
+                ALTER TABLE "bookings" DROP CONSTRAINT "FK_38a69a58a323647f2e75eb994de";
+            `);
+        }
         // Change the data type of the "id" column in the "user" table
         await queryRunner.query(`
             ALTER TABLE "user"
@@ -36,7 +51,7 @@ class UpdateUserIdToString1736260126945 {
             ALTER TABLE "bookings"
             ADD CONSTRAINT "FK_38a69a58a323647f2e75eb994de" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
         `);
-        // Additional schema modifications for other columns
+        // Additional schema modifications
         await queryRunner.query(`
             ALTER TABLE "user"
             ALTER COLUMN "role" SET DEFAULT 'user';

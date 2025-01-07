@@ -1,23 +1,41 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
 export class UpdateUserIdToString1736260126945 implements MigrationInterface {
-    name = 'UpdateUserIdToString1736260126945'
+    name = 'UpdateUserIdToString1736260126945';
 
     public async up(queryRunner: QueryRunner): Promise<void> {
-        // Drop foreign key constraints referencing user.id
-        await queryRunner.query(`
-            ALTER TABLE "service" DROP CONSTRAINT "FK_87cf55c0575ef49843d7bf29397";
+        // Check and drop the foreign key on "service"
+        const serviceConstraint = await queryRunner.query(`
+            SELECT conname
+            FROM pg_constraint
+            WHERE conrelid = 'service'::regclass AND conname = 'FK_87cf55c0575ef49843d7bf29397';
         `);
-        await queryRunner.query(`
-            ALTER TABLE "bookings" DROP CONSTRAINT "FK_38a69a58a323647f2e75eb994de";
+
+        if (serviceConstraint.length > 0) {
+            await queryRunner.query(`
+                ALTER TABLE "service" DROP CONSTRAINT "FK_87cf55c0575ef49843d7bf29397";
+            `);
+        }
+
+        // Check and drop the foreign key on "bookings"
+        const bookingsConstraint = await queryRunner.query(`
+            SELECT conname
+            FROM pg_constraint
+            WHERE conrelid = 'bookings'::regclass AND conname = 'FK_38a69a58a323647f2e75eb994de';
         `);
-    
+
+        if (bookingsConstraint.length > 0) {
+            await queryRunner.query(`
+                ALTER TABLE "bookings" DROP CONSTRAINT "FK_38a69a58a323647f2e75eb994de";
+            `);
+        }
+
         // Change the data type of the "id" column in the "user" table
         await queryRunner.query(`
             ALTER TABLE "user"
             ALTER COLUMN "id" SET DATA TYPE character varying USING "id"::text;
         `);
-    
+
         // Change the foreign key columns to match the new data type
         await queryRunner.query(`
             ALTER TABLE "service"
@@ -27,7 +45,7 @@ export class UpdateUserIdToString1736260126945 implements MigrationInterface {
             ALTER TABLE "bookings"
             ALTER COLUMN "userId" SET DATA TYPE character varying USING "userId"::text;
         `);
-    
+
         // Add the foreign key constraints back
         await queryRunner.query(`
             ALTER TABLE "service"
@@ -37,13 +55,13 @@ export class UpdateUserIdToString1736260126945 implements MigrationInterface {
             ALTER TABLE "bookings"
             ADD CONSTRAINT "FK_38a69a58a323647f2e75eb994de" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE CASCADE;
         `);
-    
-        // Additional schema modifications for other columns
+
+        // Additional schema modifications
         await queryRunner.query(`
             ALTER TABLE "user"
             ALTER COLUMN "role" SET DEFAULT 'user';
         `);
-    
+
         await queryRunner.query(`
             CREATE TABLE "notifications" (
                 "id" SERIAL NOT NULL,
@@ -54,7 +72,7 @@ export class UpdateUserIdToString1736260126945 implements MigrationInterface {
                 CONSTRAINT "PK_6a72c3c0f683f6462415e653c3a" PRIMARY KEY ("id")
             );
         `);
-    
+
         await queryRunner.query(`
             ALTER TABLE "bookings"
             ALTER COLUMN "frequency" TYPE character varying(50),
@@ -75,7 +93,6 @@ export class UpdateUserIdToString1736260126945 implements MigrationInterface {
             ALTER COLUMN "amount" SET NOT NULL;
         `);
     }
-    
 
     public async down(queryRunner: QueryRunner): Promise<void> {
         await queryRunner.query(`ALTER TABLE "bookings" DROP CONSTRAINT "FK_38a69a58a323647f2e75eb994de"`);
