@@ -9,7 +9,7 @@ class UpdateUserIdToString1736260126945 {
         // Alter the "user" table instead of creating it again
         await queryRunner.query(`
             ALTER TABLE "user"
-            ALTER COLUMN "id" TYPE character varying USING id::text;  -- Change UUID to string
+            ALTER COLUMN "id" SET DATA TYPE character varying USING "id"::text;  -- Change UUID to string
             ALTER COLUMN "role" SET DEFAULT 'user';  -- Set default role if not already set
         `);
         // Create "notifications" table
