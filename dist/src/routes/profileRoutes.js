@@ -8,9 +8,9 @@ const profileController_1 = require("../controllers/profileController");
 const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = express_1.default.Router();
 // Get user profile
-router.get("/profile", authMiddleware_1.verifyToken, profileController_1.getUserProfile);
+router.get("/", authMiddleware_1.verifyToken, profileController_1.getUserProfile);
 // Edit user profile
-router.put("/profile", authMiddleware_1.verifyToken, profileController_1.editUserProfile);
+router.put("/", authMiddleware_1.verifyToken, profileController_1.editUserProfile);
 // Update user role (super admin only)
 router.put("/role", authMiddleware_1.verifyToken, authMiddleware_1.isSuperAdmin, profileController_1.updateUserRole);
 // Get all users (super admin only)

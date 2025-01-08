@@ -12,6 +12,8 @@ const database_1 = require("./src/config/database");
 const authRoutes_1 = __importDefault(require("./src/routes/authRoutes"));
 const bookingRoutes_1 = __importDefault(require("./src/routes/admin/bookingRoutes"));
 const serviceRoutes_1 = __importDefault(require("./src/routes/admin/serviceRoutes"));
+const notificationRoutes_1 = __importDefault(require("./src/routes/notificationRoutes"));
+const profileRoutes_1 = __importDefault(require("./src/routes/profileRoutes"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 dotenv_1.default.config();
@@ -28,6 +30,8 @@ app.get('/', (req, res) => {
 app.use("/api/auth", authRoutes_1.default);
 app.use("/api/booking", bookingRoutes_1.default);
 app.use("/api/admin", serviceRoutes_1.default);
+app.use("/api/notification", notificationRoutes_1.default);
+app.use("/api/profile", profileRoutes_1.default);
 // Serve uploaded images
 app.use("/uploads", express_1.default.static(path_1.default.join(__dirname, "../uploads")));
 // Load SSL credentials
