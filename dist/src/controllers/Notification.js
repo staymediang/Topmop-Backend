@@ -24,7 +24,9 @@ const createNotification = async (req, res) => {
         notification.title = title;
         notification.message = message;
         notification.isActive = isActive !== undefined ? isActive : true;
+        console.log("Saving notification:", notification);
         await database_1.AppDataSource.getRepository(Notification_1.Notification).save(notification);
+        console.log("Notification saved successfully");
         res.status(201).json({ message: 'Notification created successfully' });
     }
     catch (error) {

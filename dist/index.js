@@ -24,6 +24,7 @@ app.use((0, cors_1.default)()); // Allow requests from any origin during develop
 app.use(express_1.default.json());
 // Define a route for the root path
 app.get('/', (req, res) => {
+    console.log(`Incoming request: ${req.method} ${req.originalUrl}`);
     res.send('Welcome to the API!');
 });
 // Use defined routes
