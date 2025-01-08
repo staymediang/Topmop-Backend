@@ -5,10 +5,10 @@ import { verifyToken, isSuperAdmin } from "../middleware/authMiddleware";
 const router = express.Router();
 
 // Get user profile
-router.get("/profile", verifyToken, getUserProfile);
+router.get("/", verifyToken, getUserProfile);
 
 // Edit user profile
-router.put("/profile", verifyToken, editUserProfile);
+router.put("/", verifyToken, editUserProfile);
 
 // Update user role (super admin only)
 router.put("/role", verifyToken, isSuperAdmin, updateUserRole);
