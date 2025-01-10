@@ -15,5 +15,5 @@ router.put('/:id', Notification_1.toggleNotification);
 // Delete a notification
 router.delete('/:id', Notification_1.deleteNotification);
 // Edit a notification
-router.patch('/:id', Notification_1.editNotification);
+router.put('/edit/:id', Notification_1.editNotification);
 exports.default = router;

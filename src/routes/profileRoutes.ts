@@ -8,7 +8,7 @@ const router = express.Router();
 router.get("/", verifyToken, getUserProfile);
 
 // Edit user profile
-router.put("/", verifyToken, editUserProfile);
+router.put("/edit", verifyToken, editUserProfile);
 
 // Update user role (super admin only)
 router.put("/role", verifyToken, isSuperAdmin, updateUserRole);
