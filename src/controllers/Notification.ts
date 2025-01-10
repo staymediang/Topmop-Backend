@@ -53,3 +53,50 @@ export const toggleNotification = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error updating notification status' });
     }
 };
+
+
+export const deleteNotification = async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    try {
+        const notificationRepo = AppDataSource.getRepository(Notification);
+        const notification = await notificationRepo.findOne({ where: { id: parseInt(id) } });
+
+        if (!notification) {
+            return res.status(404).json({ message: 'Notification not found' });
+        }
+
+        await notificationRepo.remove(notification);
+        res.status(200).json({ message: 'Notification deleted successfully' });
+    } catch (error) {
+        console.error("Error deleting notification:", error);
+        res.status(500).json({ message: 'Error deleting notification' });
+    }
+};
+
+export const editNotification = async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { title, message, isActive } = req.body;
+
+    try {
+        const notificationRepo = AppDataSource.getRepository(Notification);
+        const notification = await notificationRepo.findOne({ where: { id: parseInt(id) } });
+
+        if (!notification) {
+            return res.status(404).json({ message: 'Notification not found' });
+        }
+
+        // Update fields
+        notification.title = title || notification.title;
+        notification.message = message || notification.message;
+        if (isActive !== undefined) {
+            notification.isActive = isActive;
+        }
+
+        await notificationRepo.save(notification);
+        res.status(200).json({ message: 'Notification updated successfully', notification });
+    } catch (error) {
+        console.error("Error updating notification:", error);
+        res.status(500).json({ message: 'Error updating notification' });
+    }
+};

@@ -1,5 +1,5 @@
 import express from 'express';
-import { getNotifications, createNotification, toggleNotification } from '../controllers/Notification';
+import { getNotifications, createNotification, toggleNotification, deleteNotification, editNotification } from '../controllers/Notification';
 
 const router = express.Router();
 
@@ -11,5 +11,11 @@ const router = express.Router();
 
  // Toggle the status of a notification
  router.put('/:id', toggleNotification);
+
+ // Delete a notification
+router.delete('/:id', deleteNotification);
+
+// Edit a notification
+router.patch('/:id', editNotification);
 
 export default router;

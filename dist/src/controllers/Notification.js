@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.toggleNotification = exports.createNotification = exports.getNotifications = void 0;
+exports.editNotification = exports.deleteNotification = exports.toggleNotification = exports.createNotification = exports.getNotifications = void 0;
 const database_1 = require("../config/database");
 const Notification_1 = require("../models/Notification");
 const getNotifications = async (req, res) => {
@@ -53,3 +53,44 @@ const toggleNotification = async (req, res) => {
     }
 };
 exports.toggleNotification = toggleNotification;
+const deleteNotification = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const notificationRepo = database_1.AppDataSource.getRepository(Notification_1.Notification);
+        const notification = await notificationRepo.findOne({ where: { id: parseInt(id) } });
+        if (!notification) {
+            return res.status(404).json({ message: 'Notification not found' });
+        }
+        await notificationRepo.remove(notification);
+        res.status(200).json({ message: 'Notification deleted successfully' });
+    }
+    catch (error) {
+        console.error("Error deleting notification:", error);
+        res.status(500).json({ message: 'Error deleting notification' });
+    }
+};
+exports.deleteNotification = deleteNotification;
+const editNotification = async (req, res) => {
+    const { id } = req.params;
+    const { title, message, isActive } = req.body;
+    try {
+        const notificationRepo = database_1.AppDataSource.getRepository(Notification_1.Notification);
+        const notification = await notificationRepo.findOne({ where: { id: parseInt(id) } });
+        if (!notification) {
+            return res.status(404).json({ message: 'Notification not found' });
+        }
+        // Update fields
+        notification.title = title || notification.title;
+        notification.message = message || notification.message;
+        if (isActive !== undefined) {
+            notification.isActive = isActive;
+        }
+        await notificationRepo.save(notification);
+        res.status(200).json({ message: 'Notification updated successfully', notification });
+    }
+    catch (error) {
+        console.error("Error updating notification:", error);
+        res.status(500).json({ message: 'Error updating notification' });
+    }
+};
+exports.editNotification = editNotification;

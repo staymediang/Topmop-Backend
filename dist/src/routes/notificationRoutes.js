@@ -12,4 +12,8 @@ router.get('/', Notification_1.getNotifications);
 router.post('/', Notification_1.createNotification);
 // Toggle the status of a notification
 router.put('/:id', Notification_1.toggleNotification);
+// Delete a notification
+router.delete('/:id', Notification_1.deleteNotification);
+// Edit a notification
+router.patch('/:id', Notification_1.editNotification);
 exports.default = router;
