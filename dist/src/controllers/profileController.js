@@ -1,8 +1,12 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.deleteUser = exports.addUser = exports.getAllUsers = exports.updateUserRole = exports.editUserProfile = exports.getUserProfile = void 0;
 const database_1 = require("../config/database");
 const User_1 = require("../models/User");
+const bcryptjs_1 = __importDefault(require("bcryptjs"));
 // Get profile
 const getUserProfile = async (req, res) => {
     const userId = req.user?.userId;
@@ -100,12 +104,15 @@ const addUser = async (req, res) => {
         if (existingUser) {
             return res.status(400).json({ message: "Email is already in use" });
         }
+        // Hash the password
+        const hashedPassword = await bcryptjs_1.default.hash(password, 10);
+        // Create a new user
         const newUser = userRepo.create({
             name,
             email,
             phoneNumber,
             address,
-            password, // Ideally, hash this password before saving
+            password: hashedPassword, // Use hashed password
             role: role || "user", // Default role is "user"
         });
         await userRepo.save(newUser);

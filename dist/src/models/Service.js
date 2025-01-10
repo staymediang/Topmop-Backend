@@ -28,6 +28,16 @@ __decorate([
     __metadata("design:type", String)
 ], Service.prototype, "description", void 0);
 __decorate([
+    (0, typeorm_1.Column)("simple-json", { nullable: true }) // JSON field for optional items
+    ,
+    __metadata("design:type", Array)
+], Service.prototype, "optional", void 0);
+__decorate([
+    (0, typeorm_1.Column)("simple-json", { nullable: true }) // JSON field for price object
+    ,
+    __metadata("design:type", Object)
+], Service.prototype, "price", void 0);
+__decorate([
     (0, typeorm_1.Column)({ nullable: true }) // Allows null if no image is uploaded
     ,
     __metadata("design:type", String)

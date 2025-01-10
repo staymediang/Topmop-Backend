@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { AppDataSource } from "../config/database";
 import { User } from "../models/User";
+import bcrypt from "bcryptjs";
 
 // Get profile
 export const getUserProfile = async (req: Request, res: Response) => {
@@ -116,12 +117,16 @@ export const addUser = async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Email is already in use" });
     }
 
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create a new user
     const newUser = userRepo.create({
       name,
       email,
       phoneNumber,
       address,
-      password, // Ideally, hash this password before saving
+      password: hashedPassword, // Use hashed password
       role: role || "user", // Default role is "user"
     });
 

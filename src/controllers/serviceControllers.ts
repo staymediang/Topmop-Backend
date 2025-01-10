@@ -5,7 +5,7 @@ import path from "path";
 import { User } from "../models/User";
 
 export const createService = async (req: Request, res: Response) => {
-  const { title, description } = req.body;
+  const { title, description, optional, price } = req.body;
   const imageUrl = req.file ? path.join("uploads", req.file.filename) : null;
 
   try {
@@ -14,19 +14,22 @@ export const createService = async (req: Request, res: Response) => {
     service.description = description;
     service.imageUrl = imageUrl;
 
+    // Set optional and price fields
+    service.optional = optional; // Assume optional is a JSON string or an array
+    service.price = typeof price === "string" ? JSON.parse(price) : price; // Parse if sent as a string
+
     // Fetch the user by ID to set the createdBy field
     const userRepo = AppDataSource.getRepository(User);
-    const userId = req.user?.userId; // userId is now a string
+    const userId = req.user?.userId;
 
     if (!userId) {
       return res.status(400).json({ message: "User ID is required" });
     }
 
-    const user = await userRepo.findOne({ where: { id: userId } }); // Query by string userId
-
+    const user = await userRepo.findOne({ where: { id: userId } });
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    service.createdBy = user; // Set the user instance
+    service.createdBy = user;
 
     await AppDataSource.getRepository(Service).save(service);
     res.status(201).json({ message: "Service created successfully", service });

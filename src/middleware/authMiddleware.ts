@@ -5,12 +5,14 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
   const token = req.headers["authorization"]?.split(" ")[1];
   if (!token) return res.status(401).json({ message: "Access denied" });
+  
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JwtPayload & {
       userId: string; // Change this to string
       role: "user" | "admin" | "super admin" | "booking_manager";
     };
+    console.log("Decoded token:", decoded);
     req.user = decoded;
     next();
   } catch (error) {
@@ -20,7 +22,7 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
 
 // Middleware to check if user is an admin
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if (req.user?.role !== "admin" && req.user?.role !== "super admin") {
+  if (req.user?.role?.toLowerCase() !== "admin".toLowerCase() && req.user?.role !== "super admin".toLowerCase()) {
     return res.status(403).json({ message: "Access restricted to admin only" });
   }
   next();
@@ -28,7 +30,7 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
 
 // Middleware to check if user is a super admin
 export const isSuperAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if (req.user?.role !== "super admin") {
+  if (req.user?.role.toLowerCase() !== "super admin".toLowerCase()) {
     return res.status(403).json({ message: "Access restricted to super admin only" });
   }
   next();
@@ -36,7 +38,7 @@ export const isSuperAdmin = (req: Request, res: Response, next: NextFunction) =>
 
 // Middleware to check if user is a booking manager
 export const isBookingManager = (req: Request, res: Response, next: NextFunction) => {
-  if (req.user?.role !== "booking_manager" && req.user?.role !== "super admin") {
+  if (req.user?.role.toLowerCase() !== "booking_manager".toLowerCase() && req.user?.role !== "super admin".toLowerCase()) {
     return res.status(403).json({ message: "Access restricted to booking manager or super admin only" });
   }
   next();

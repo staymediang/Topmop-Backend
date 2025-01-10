@@ -12,6 +12,7 @@ const verifyToken = (req, res, next) => {
         return res.status(401).json({ message: "Access denied" });
     try {
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
+        console.log("Decoded token:", decoded);
         req.user = decoded;
         next();
     }
@@ -22,7 +23,7 @@ const verifyToken = (req, res, next) => {
 exports.verifyToken = verifyToken;
 // Middleware to check if user is an admin
 const isAdmin = (req, res, next) => {
-    if (req.user?.role !== "admin" && req.user?.role !== "super admin") {
+    if (req.user?.role?.toLowerCase() !== "admin".toLowerCase() && req.user?.role !== "super admin".toLowerCase()) {
         return res.status(403).json({ message: "Access restricted to admin only" });
     }
     next();
@@ -30,7 +31,7 @@ const isAdmin = (req, res, next) => {
 exports.isAdmin = isAdmin;
 // Middleware to check if user is a super admin
 const isSuperAdmin = (req, res, next) => {
-    if (req.user?.role !== "super admin") {
+    if (req.user?.role.toLowerCase() !== "super admin".toLowerCase()) {
         return res.status(403).json({ message: "Access restricted to super admin only" });
     }
     next();
@@ -38,7 +39,7 @@ const isSuperAdmin = (req, res, next) => {
 exports.isSuperAdmin = isSuperAdmin;
 // Middleware to check if user is a booking manager
 const isBookingManager = (req, res, next) => {
-    if (req.user?.role !== "booking_manager" && req.user?.role !== "super admin") {
+    if (req.user?.role.toLowerCase() !== "booking_manager".toLowerCase() && req.user?.role !== "super admin".toLowerCase()) {
         return res.status(403).json({ message: "Access restricted to booking manager or super admin only" });
     }
     next();

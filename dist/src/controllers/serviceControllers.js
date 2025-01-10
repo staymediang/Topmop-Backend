@@ -9,23 +9,26 @@ const Service_1 = require("../models/Service");
 const path_1 = __importDefault(require("path"));
 const User_1 = require("../models/User");
 const createService = async (req, res) => {
-    const { title, description } = req.body;
+    const { title, description, optional, price } = req.body;
     const imageUrl = req.file ? path_1.default.join("uploads", req.file.filename) : null;
     try {
         const service = new Service_1.Service();
         service.title = title;
         service.description = description;
         service.imageUrl = imageUrl;
+        // Set optional and price fields
+        service.optional = optional; // Assume optional is a JSON string or an array
+        service.price = typeof price === "string" ? JSON.parse(price) : price; // Parse if sent as a string
         // Fetch the user by ID to set the createdBy field
         const userRepo = database_1.AppDataSource.getRepository(User_1.User);
-        const userId = req.user?.userId; // userId is now a string
+        const userId = req.user?.userId;
         if (!userId) {
             return res.status(400).json({ message: "User ID is required" });
         }
-        const user = await userRepo.findOne({ where: { id: userId } }); // Query by string userId
+        const user = await userRepo.findOne({ where: { id: userId } });
         if (!user)
             return res.status(404).json({ message: "User not found" });
-        service.createdBy = user; // Set the user instance
+        service.createdBy = user;
         await database_1.AppDataSource.getRepository(Service_1.Service).save(service);
         res.status(201).json({ message: "Service created successfully", service });
     }
