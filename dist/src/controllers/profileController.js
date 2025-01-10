@@ -24,25 +24,40 @@ const getUserProfile = async (req, res) => {
 };
 exports.getUserProfile = getUserProfile;
 // Edit profile
+// Edit user profile: Fetch and update, including role
 const editUserProfile = async (req, res) => {
-    const userId = req.user?.userId; // userId is now a string
-    const { name, email, phoneNumber, address } = req.body;
+    const userId = req.body.userId; // Fetch userId from the request body
+    if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+    }
     try {
         const userRepo = database_1.AppDataSource.getRepository(User_1.User);
-        const user = await userRepo.findOne({ where: { id: userId } }); // No need to convert userId to a number
-        if (!user)
+        // Fetch user details
+        const user = await userRepo.findOne({ where: { id: userId } });
+        if (!user) {
             return res.status(404).json({ message: "User not found" });
-        // Update allowed fields
+        }
+        // If no update data, return user details for prefill
+        const { name, email, phoneNumber, address, role } = req.body;
+        if (!name && !email && !phoneNumber && !address && !role) {
+            return res.status(200).json({ user });
+        }
+        // Validate role if provided
+        if (role && !["user", "admin", "super admin", "booking_manager"].includes(role)) {
+            return res.status(400).json({ message: "Invalid role specified" });
+        }
+        // Update allowed fields only
         user.name = name || user.name;
         user.email = email || user.email;
         user.phoneNumber = phoneNumber || user.phoneNumber;
         user.address = address || user.address;
+        user.role = role || user.role;
         await userRepo.save(user);
-        res.status(200).json({ message: "Profile updated successfully", user });
+        res.status(200).json({ message: "User updated successfully", user });
     }
     catch (error) {
-        console.error("Error updating profile:", error);
-        res.status(500).json({ message: "Error updating profile", error: error.message });
+        console.error("Error updating user:", error);
+        res.status(500).json({ message: "Error updating user", error: error.message });
     }
 };
 exports.editUserProfile = editUserProfile;

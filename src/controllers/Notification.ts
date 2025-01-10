@@ -75,28 +75,38 @@ export const deleteNotification = async (req: Request, res: Response) => {
 };
 
 export const editNotification = async (req: Request, res: Response) => {
-    const { id } = req.params;
-    const { title, message, isActive } = req.body;
-
+    const { id } = req.params; // Notification ID
+    const { title, message, isActive } = req.body; // Fields to update
+  
     try {
-        const notificationRepo = AppDataSource.getRepository(Notification);
-        const notification = await notificationRepo.findOne({ where: { id: parseInt(id) } });
-
-        if (!notification) {
-            return res.status(404).json({ message: 'Notification not found' });
-        }
-
-        // Update fields
-        notification.title = title || notification.title;
-        notification.message = message || notification.message;
-        if (isActive !== undefined) {
-            notification.isActive = isActive;
-        }
-
-        await notificationRepo.save(notification);
-        res.status(200).json({ message: 'Notification updated successfully', notification });
+      const notificationRepo = AppDataSource.getRepository(Notification);
+  
+      // Fetch the notification by ID
+      const notification = await notificationRepo.findOne({ where: { id: parseInt(id) } });
+  
+      if (!notification) {
+        return res.status(404).json({ message: "Notification not found" });
+      }
+  
+      // If no fields to update, return the notification for prefill
+      if (!title && !message && isActive === undefined) {
+        return res.status(200).json({ notification });
+      }
+  
+      // Update allowed fields only
+      notification.title = title || notification.title;
+      notification.message = message || notification.message;
+      if (isActive !== undefined) {
+        notification.isActive = isActive;
+      }
+  
+      // Save the updated notification
+      await notificationRepo.save(notification);
+  
+      res.status(200).json({ message: "Notification updated successfully", notification });
     } catch (error) {
-        console.error("Error updating notification:", error);
-        res.status(500).json({ message: 'Error updating notification' });
+      console.error("Error updating notification:", error);
+      res.status(500).json({ message: "Error updating notification", error: error.message });
     }
-};
+  };
+  
