@@ -3,6 +3,7 @@ import { Booking } from '../models/Booking';
 import { AppDataSource } from '../config/database';
 import { User } from '../models/User';
 import { MoreThan, LessThan } from 'typeorm';
+import { Address } from '../models/Booking'; 
 
 export const setFrequency = async (req: Request, res: Response) => {
     const { frequency, hoursRequired, preferredDay, preferredTime } = req.body;
@@ -23,12 +24,14 @@ export const setFrequency = async (req: Request, res: Response) => {
         booking.lastName = '';
         booking.contactNumber = '';
         booking.email = '';
-        booking.address = {
-            street: '',
-            number: '',
-            city: '',
-            postalCode: '',
-        }; // Default empty address structure
+
+        const address = new Address(); // Create an instance of Address
+        address.street = '';
+        address.number = '';
+        address.city = '';
+        address.postalCode = '';
+        booking.address = address; // Assign the address instance to booking
+
         booking.paymentType = 'pending';
 
         await queryRunner.manager.save(booking);
@@ -43,6 +46,8 @@ export const setFrequency = async (req: Request, res: Response) => {
         await queryRunner.release();
     }
 };
+
+
 
 
 export const setRequirements = async (req: Request, res: Response) => {
