@@ -31,6 +31,7 @@ export const setFrequency = async (req: Request, res: Response) => {
         address.city = '';
         address.postalCode = '';
         booking.address = address; // Assign the address instance to booking
+        booking.amount = 0.0;
 
         booking.paymentType = 'pending';
 

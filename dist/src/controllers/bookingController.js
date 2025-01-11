@@ -27,6 +27,7 @@ const setFrequency = async (req, res) => {
         address.city = '';
         address.postalCode = '';
         booking.address = address; // Assign the address instance to booking
+        booking.amount = 0.0;
         booking.paymentType = 'pending';
         await queryRunner.manager.save(booking);
         await queryRunner.commitTransaction();
