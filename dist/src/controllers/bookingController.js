@@ -4,6 +4,7 @@ exports.getAllBookings = exports.getNewBookings = exports.getCompletedBookings =
 const Booking_1 = require("../models/Booking");
 const database_1 = require("../config/database");
 const typeorm_1 = require("typeorm");
+const Booking_2 = require("../models/Booking");
 const setFrequency = async (req, res) => {
     const { frequency, hoursRequired, preferredDay, preferredTime } = req.body;
     const queryRunner = database_1.AppDataSource.createQueryRunner();
@@ -20,12 +21,12 @@ const setFrequency = async (req, res) => {
         booking.lastName = '';
         booking.contactNumber = '';
         booking.email = '';
-        booking.address = {
-            street: '',
-            number: '',
-            city: '',
-            postalCode: '',
-        }; // Default empty address structure
+        const address = new Booking_2.Address(); // Create an instance of Address
+        address.street = '';
+        address.number = '';
+        address.city = '';
+        address.postalCode = '';
+        booking.address = address; // Assign the address instance to booking
         booking.paymentType = 'pending';
         await queryRunner.manager.save(booking);
         await queryRunner.commitTransaction();
