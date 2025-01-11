@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteUser = exports.addUser = exports.getAllUsers = exports.updateUserRole = exports.editUserProfile = exports.getUserProfile = void 0;
+exports.deleteUser = exports.getSingleUser = exports.addUser = exports.getAllUsers = exports.updateUserRole = exports.editUserProfile = exports.getUserProfile = void 0;
 const database_1 = require("../config/database");
 const User_1 = require("../models/User");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
@@ -23,7 +23,6 @@ const getUserProfile = async (req, res) => {
     }
 };
 exports.getUserProfile = getUserProfile;
-// Edit profile
 // Edit user profile: Fetch and update, including role
 const editUserProfile = async (req, res) => {
     const userId = req.body.userId; // Fetch userId from the request body
@@ -139,12 +138,30 @@ const addUser = async (req, res) => {
     }
 };
 exports.addUser = addUser;
-const deleteUser = async (req, res) => {
-    const userId = req.params.id; // userId is now a string
+const getSingleUser = async (req, res) => {
+    const userId = req.params.id; // Extract user ID from route parameters
     try {
         const userRepo = database_1.AppDataSource.getRepository(User_1.User);
-        // Check if user exists
-        const user = await userRepo.findOne({ where: { id: userId } }); // No need to parse userId
+        // Fetch user by ID
+        const user = await userRepo.findOne({ where: { id: userId } });
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({ user });
+    }
+    catch (error) {
+        console.error("Error fetching user:", error);
+        res.status(500).json({ message: "Error fetching user", error: error.message });
+    }
+};
+exports.getSingleUser = getSingleUser;
+// Delete a single user
+const deleteUser = async (req, res) => {
+    const userId = req.params.id; // Extract user ID from route parameters
+    try {
+        const userRepo = database_1.AppDataSource.getRepository(User_1.User);
+        // Fetch user to confirm existence
+        const user = await userRepo.findOne({ where: { id: userId } });
         if (!user) {
             return res.status(404).json({ message: "User not found" });
         }

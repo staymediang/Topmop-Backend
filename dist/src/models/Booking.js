@@ -9,9 +9,29 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Booking = void 0;
+exports.Booking = exports.Address = void 0;
+// Move the Address class to the top
 const typeorm_1 = require("typeorm");
 const User_1 = require("./User");
+class Address {
+}
+exports.Address = Address;
+__decorate([
+    (0, typeorm_1.Column)('varchar', { length: 100, nullable: true }),
+    __metadata("design:type", String)
+], Address.prototype, "street", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { length: 50, nullable: true }),
+    __metadata("design:type", String)
+], Address.prototype, "number", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { length: 50, nullable: true }),
+    __metadata("design:type", String)
+], Address.prototype, "city", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { length: 20, nullable: true }),
+    __metadata("design:type", String)
+], Address.prototype, "postalCode", void 0);
 let Booking = class Booking {
 };
 exports.Booking = Booking;
@@ -60,6 +80,10 @@ __decorate([
     __metadata("design:type", String)
 ], Booking.prototype, "referralSource", void 0);
 __decorate([
+    (0, typeorm_1.Column)('varchar', { length: 20, nullable: true }),
+    __metadata("design:type", String)
+], Booking.prototype, "title", void 0);
+__decorate([
     (0, typeorm_1.Column)('varchar', { length: 100, nullable: true }),
     __metadata("design:type", String)
 ], Booking.prototype, "firstName", void 0);
@@ -76,8 +100,9 @@ __decorate([
     __metadata("design:type", String)
 ], Booking.prototype, "email", void 0);
 __decorate([
-    (0, typeorm_1.Column)('text', { nullable: true }),
-    __metadata("design:type", String)
+    (0, typeorm_1.Column)(() => Address) // Embedding the Address object
+    ,
+    __metadata("design:type", Address)
 ], Booking.prototype, "address", void 0);
 __decorate([
     (0, typeorm_1.Column)('varchar', { length: 50, nullable: true }),
@@ -87,6 +112,18 @@ __decorate([
     (0, typeorm_1.Column)('varchar', { length: 20, nullable: true }),
     __metadata("design:type", String)
 ], Booking.prototype, "postalCode", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { length: 50, nullable: true }),
+    __metadata("design:type", String)
+], Booking.prototype, "dirtLevel", void 0);
+__decorate([
+    (0, typeorm_1.Column)('text', { nullable: true }),
+    __metadata("design:type", String)
+], Booking.prototype, "roomSelection", void 0);
+__decorate([
+    (0, typeorm_1.Column)('text', { nullable: true }),
+    __metadata("design:type", String)
+], Booking.prototype, "additionalServices", void 0);
 __decorate([
     (0, typeorm_1.Column)('varchar', { length: 20 }),
     __metadata("design:type", String)

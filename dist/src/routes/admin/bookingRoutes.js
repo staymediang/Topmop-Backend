@@ -20,6 +20,7 @@ router.get('/booking/:bookingId', bookingController_1.getBookingDetails);
 router.get('/booking/history', bookingController_1.getBookingHistory);
 router.get('/booking/upcoming', bookingController_1.getUpcomingBookings);
 router.get('/booking/summary/:bookingId', bookingController_1.getBookingSummary);
+router.get('/booking', bookingController_1.getAllBookings);
 // Admin booking management routes
 router.delete('/admin/:bookingId', authMiddleware_1.isAdmin, authMiddleware_1.isSuperAdmin, bookingController_1.cancelBooking);
 router.get('/admin/ongoing-bookings', authMiddleware_1.isAdmin, authMiddleware_1.isSuperAdmin, bookingController_1.getOngoingBookings);

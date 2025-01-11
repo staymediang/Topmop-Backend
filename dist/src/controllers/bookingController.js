@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getNewBookings = exports.getCompletedBookings = exports.getOngoingBookings = exports.cancelBooking = exports.getBookingSummary = exports.getUpcomingBookings = exports.getBookingHistory = exports.getBookingDetails = exports.updateProfile = exports.getProfile = exports.setPaymentDetails = exports.setPersonalDetails = exports.setRequirements = exports.setFrequency = void 0;
+exports.getAllBookings = exports.getNewBookings = exports.getCompletedBookings = exports.getOngoingBookings = exports.cancelBooking = exports.getBookingSummary = exports.getUpcomingBookings = exports.getBookingHistory = exports.getBookingDetails = exports.updateProfile = exports.getProfile = exports.setPaymentDetails = exports.setPersonalDetails = exports.setRequirements = exports.setFrequency = void 0;
 const Booking_1 = require("../models/Booking");
 const database_1 = require("../config/database");
 const typeorm_1 = require("typeorm");
@@ -20,8 +20,12 @@ const setFrequency = async (req, res) => {
         booking.lastName = '';
         booking.contactNumber = '';
         booking.email = '';
-        booking.address = '';
-        booking.city = '';
+        booking.address = {
+            street: '',
+            number: '',
+            city: '',
+            postalCode: '',
+        }; // Default empty address structure
         booking.paymentType = 'pending';
         await queryRunner.manager.save(booking);
         await queryRunner.commitTransaction();
@@ -29,7 +33,7 @@ const setFrequency = async (req, res) => {
     }
     catch (error) {
         await queryRunner.rollbackTransaction();
-        console.error("Error details:", error);
+        console.error('Error details:', error);
         res.status(500).json({ message: 'Error setting frequency', error: error.message });
     }
     finally {
@@ -38,21 +42,45 @@ const setFrequency = async (req, res) => {
 };
 exports.setFrequency = setFrequency;
 const setRequirements = async (req, res) => {
-    const { bookingId, meetCleanerFirst, cleaningStartDate, needsIroning, accessInstructions, additionalInfo, referralSource } = req.body;
+    const { bookingId, meetCleanerFirst, // Boolean: Whether the client wants to meet the cleaner
+    cleaningStartDate, // Date: Start date for the cleaning service
+    needsIroning, // Boolean: Whether ironing is needed
+    accessInstructions, // String: Instructions for accessing the property
+    additionalInfo, // String: Any additional information
+    referralSource, // String: How the client heard about the service
+    dirtLevel, // Enum: Light, Medium, Heavy
+    roomSelection, // Array: Selected rooms (e.g., { room: 'Kitchen', count: 2 })
+    additionalServices // Array: Selected additional services (e.g., { service: 'Laundry', count: 1 })
+     } = req.body;
     try {
         const bookingRepo = database_1.AppDataSource.getRepository(Booking_1.Booking);
         const booking = await bookingRepo.findOne({ where: { id: bookingId } });
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
         }
+        // Update booking details
         booking.meetCleanerFirst = !!meetCleanerFirst; // Convert to boolean
         booking.cleaningStartDate = cleaningStartDate ? new Date(cleaningStartDate) : null; // Ensure Date type
         booking.needsIroning = !!needsIroning;
-        booking.accessInstructions = accessInstructions;
-        booking.additionalInfo = additionalInfo;
-        booking.referralSource = referralSource;
+        booking.accessInstructions = accessInstructions || null; // Optional field
+        booking.additionalInfo = additionalInfo || null; // Optional field
+        booking.referralSource = referralSource || null; // Optional field
+        booking.dirtLevel = dirtLevel; // Validate against allowed values (Light, Medium, Heavy)
+        booking.roomSelection = roomSelection || []; // Store selected rooms
+        booking.additionalServices = additionalServices || []; // Store selected additional services
         await bookingRepo.save(booking);
-        res.status(200).json({ message: 'Requirements set successfully' });
+        res.status(200).json({
+            message: 'Requirements set successfully',
+            bookingId: booking.id,
+            summary: {
+                meetCleanerFirst: booking.meetCleanerFirst,
+                cleaningStartDate: booking.cleaningStartDate,
+                needsIroning: booking.needsIroning,
+                dirtLevel: booking.dirtLevel,
+                roomSelection: booking.roomSelection,
+                additionalServices: booking.additionalServices,
+            }
+        });
     }
     catch (error) {
         console.error("Error setting requirements:", error);
@@ -61,29 +89,42 @@ const setRequirements = async (req, res) => {
 };
 exports.setRequirements = setRequirements;
 const setPersonalDetails = async (req, res) => {
-    const { bookingId, firstName, lastName, contactNumber, email, address, city, postalCode } = req.body;
+    const { bookingId, title, firstName, lastName, contactNumber, email, address } = req.body;
     try {
         const bookingRepo = database_1.AppDataSource.getRepository(Booking_1.Booking);
         const booking = await bookingRepo.findOne({ where: { id: bookingId } });
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
         }
-        if (!firstName || !lastName || !contactNumber || !email || !address || !city) {
+        if (!title ||
+            !firstName ||
+            !lastName ||
+            !contactNumber ||
+            !email ||
+            !address ||
+            !address.street ||
+            !address.number ||
+            !address.city ||
+            !address.postalCode) {
             return res.status(400).json({ message: 'All personal details are required' });
         }
+        booking.title = title;
         booking.firstName = firstName;
         booking.lastName = lastName;
         booking.contactNumber = contactNumber;
         booking.email = email;
-        booking.address = address;
-        booking.city = city;
-        booking.postalCode = postalCode;
+        booking.address = {
+            street: address.street,
+            number: address.number,
+            city: address.city,
+            postalCode: address.postalCode,
+        };
         await bookingRepo.save(booking);
-        res.status(200).json({ message: 'Personal details set' });
+        res.status(200).json({ message: 'Personal details updated successfully' });
     }
     catch (error) {
         console.error("Error details:", error);
-        res.status(500).json({ message: 'Error setting personal details', error: error.message });
+        res.status(500).json({ message: 'Error updating personal details', error: error.message });
     }
 };
 exports.setPersonalDetails = setPersonalDetails;
@@ -339,3 +380,17 @@ const getNewBookings = async (req, res) => {
     }
 };
 exports.getNewBookings = getNewBookings;
+const getAllBookings = async (req, res) => {
+    try {
+        const bookingRepo = database_1.AppDataSource.getRepository(Booking_1.Booking);
+        const bookings = await bookingRepo.find({
+            relations: ['user'], // Include related entities like user if necessary
+        });
+        res.status(200).json(bookings);
+    }
+    catch (error) {
+        console.error('Error fetching bookings:', error);
+        res.status(500).json({ message: 'Error fetching bookings', error: error.message });
+    }
+};
+exports.getAllBookings = getAllBookings;

@@ -13,7 +13,8 @@ import {
     cancelBooking,
     getOngoingBookings,
     getCompletedBookings,
-    getNewBookings
+    getNewBookings,
+    getAllBookings
 } from '../../controllers/bookingController';
 import { isAdmin, isSuperAdmin } from "../../middleware/authMiddleware";
 
@@ -34,6 +35,7 @@ router.get('/booking/:bookingId', getBookingDetails);
 router.get('/booking/history', getBookingHistory);
 router.get('/booking/upcoming', getUpcomingBookings);
 router.get('/booking/summary/:bookingId', getBookingSummary);
+router.get('/booking', getAllBookings);
 
 // Admin booking management routes
 router.delete('/admin/:bookingId', isAdmin, isSuperAdmin, cancelBooking);

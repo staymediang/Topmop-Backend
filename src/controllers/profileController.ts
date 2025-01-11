@@ -21,7 +21,6 @@ export const getUserProfile = async (req: Request, res: Response) => {
 };
 
 
-// Edit profile
 // Edit user profile: Fetch and update, including role
 export const editUserProfile = async (req: Request, res: Response) => {
   const userId = req.body.userId; // Fetch userId from the request body
@@ -159,14 +158,35 @@ export const addUser = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteUser = async (req: Request, res: Response) => {
-  const userId = req.params.id; // userId is now a string
+export const getSingleUser = async (req: Request, res: Response) => {
+  const userId = req.params.id; // Extract user ID from route parameters
 
   try {
     const userRepo = AppDataSource.getRepository(User);
 
-    // Check if user exists
-    const user = await userRepo.findOne({ where: { id: userId } }); // No need to parse userId
+    // Fetch user by ID
+    const user = await userRepo.findOne({ where: { id: userId } });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ message: "Error fetching user", error: error.message });
+  }
+};
+
+// Delete a single user
+export const deleteUser = async (req: Request, res: Response) => {
+  const userId = req.params.id; // Extract user ID from route parameters
+
+  try {
+    const userRepo = AppDataSource.getRepository(User);
+
+    // Fetch user to confirm existence
+    const user = await userRepo.findOne({ where: { id: userId } });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });

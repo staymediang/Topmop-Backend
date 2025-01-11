@@ -1,11 +1,13 @@
 import express from "express";
-import { getUserProfile, editUserProfile, updateUserRole, getAllUsers,deleteUser, addUser } from "../controllers/profileController";
+import { getUserProfile, editUserProfile, updateUserRole, getAllUsers,deleteUser, addUser, getSingleUser } from "../controllers/profileController";
 import { verifyToken, isSuperAdmin } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
 // Get user profile
 router.get("/", verifyToken, getUserProfile);
+
+router.get("/:id", verifyToken, getSingleUser);
 
 // Edit user profile
 router.put("/edit", verifyToken, editUserProfile);

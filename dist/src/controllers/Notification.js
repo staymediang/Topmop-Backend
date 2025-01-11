@@ -4,15 +4,19 @@ exports.editNotification = exports.deleteNotification = exports.toggleNotificati
 const database_1 = require("../config/database");
 const Notification_1 = require("../models/Notification");
 const getNotifications = async (req, res) => {
+    const { isActive } = req.query; // Optional query parameter to filter active/inactive notifications
     try {
-        const notifications = await database_1.AppDataSource.getRepository(Notification_1.Notification).find({
-            where: { isActive: true },
+        const notificationRepo = database_1.AppDataSource.getRepository(Notification_1.Notification);
+        // Determine filtering criteria based on `isActive` query parameter
+        const whereClause = isActive !== undefined ? { isActive: isActive === 'true' } : {};
+        const notifications = await notificationRepo.find({
+            where: whereClause,
             order: { createdAt: 'DESC' },
         });
         res.status(200).json(notifications);
     }
     catch (error) {
-        console.error("Error fetching notifications:", error);
+        console.error('Error fetching notifications:', error);
         res.status(500).json({ message: 'Error fetching notifications' });
     }
 };
@@ -43,12 +47,13 @@ const toggleNotification = async (req, res) => {
         if (!notification) {
             return res.status(404).json({ message: 'Notification not found' });
         }
-        notification.isActive = !notification.isActive;
+        // Toggle the `isActive` status
+        notification.isActive = false;
         await notificationRepo.save(notification);
-        res.status(200).json({ message: 'Notification status updated', notification });
+        res.status(200).json({ message: 'Notification marked as read', notification });
     }
     catch (error) {
-        console.error("Error toggling notification:", error);
+        console.error('Error toggling notification:', error);
         res.status(500).json({ message: 'Error updating notification status' });
     }
 };
@@ -65,7 +70,7 @@ const deleteNotification = async (req, res) => {
         res.status(200).json({ message: 'Notification deleted successfully' });
     }
     catch (error) {
-        console.error("Error deleting notification:", error);
+        console.error('Error deleting notification:', error);
         res.status(500).json({ message: 'Error deleting notification' });
     }
 };

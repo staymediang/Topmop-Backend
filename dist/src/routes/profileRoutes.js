@@ -9,6 +9,7 @@ const authMiddleware_1 = require("../middleware/authMiddleware");
 const router = express_1.default.Router();
 // Get user profile
 router.get("/", authMiddleware_1.verifyToken, profileController_1.getUserProfile);
+router.get("/:id", authMiddleware_1.verifyToken, profileController_1.getSingleUser);
 // Edit user profile
 router.put("/edit", authMiddleware_1.verifyToken, profileController_1.editUserProfile);
 // Update user role (super admin only)

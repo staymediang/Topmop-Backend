@@ -1,3 +1,4 @@
+// Move the Address class to the top
 import {
     Entity,
     PrimaryGeneratedColumn,
@@ -7,6 +8,19 @@ import {
     ManyToOne,
 } from 'typeorm';
 import { User } from './User';
+export class Address {
+    @Column('varchar', { length: 100, nullable: true })
+    street: string;
+
+    @Column('varchar', { length: 50, nullable: true })
+    number: string;
+
+    @Column('varchar', { length: 50, nullable: true })
+    city: string;
+
+    @Column('varchar', { length: 20, nullable: true })
+    postalCode: string;
+}
 
 @Entity('bookings')
 export class Booking {
@@ -44,6 +58,9 @@ export class Booking {
     referralSource: string;
 
     // Personal Details
+    @Column('varchar', { length: 20, nullable: true })
+    title: string;
+
     @Column('varchar', { length: 100, nullable: true })
     firstName: string;
 
@@ -56,14 +73,24 @@ export class Booking {
     @Column('varchar', { length: 100, nullable: true })
     email: string;
 
-    @Column('text', { nullable: true })
-    address: string;
+    @Column(() => Address) // Embedding the Address object
+    address: Address;
 
     @Column('varchar', { length: 50, nullable: true })
     city: string;
 
     @Column('varchar', { length: 20, nullable: true })
     postalCode: string;
+
+    // Booking Details
+    @Column('varchar', { length: 50, nullable: true })
+    dirtLevel: string;
+
+    @Column('text', { nullable: true })
+    roomSelection: string;
+
+    @Column('text', { nullable: true })
+    additionalServices: string;
 
     // Payment Details
     @Column('varchar', { length: 20 })
