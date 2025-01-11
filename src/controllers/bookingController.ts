@@ -6,13 +6,20 @@ import { MoreThan, LessThan } from 'typeorm';
 import { Address } from '../models/Booking'; 
 
 export const setFrequency = async (req: Request, res: Response) => {
-    const { frequency, hoursRequired, preferredDay, preferredTime } = req.body;
+    const { frequency, hoursRequired, preferredDay, preferredTime, userId } = req.body;
 
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
+
+         // Find the user by ID
+         const user = await queryRunner.manager.findOne(User, { where: { id: userId } });
+         if (!user) {
+             throw new Error('User not found');
+         }
+
         const booking = new Booking();
         booking.frequency = frequency;
         booking.hoursRequired = hoursRequired;
@@ -32,6 +39,7 @@ export const setFrequency = async (req: Request, res: Response) => {
         address.postalCode = '';
         booking.address = address; // Assign the address instance to booking
         booking.amount = 0.0;
+        booking.user = user;
 
         booking.paymentType = 'pending';
 

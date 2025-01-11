@@ -3,14 +3,20 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAllBookings = exports.getNewBookings = exports.getCompletedBookings = exports.getOngoingBookings = exports.cancelBooking = exports.getBookingSummary = exports.getUpcomingBookings = exports.getBookingHistory = exports.getBookingDetails = exports.updateProfile = exports.getProfile = exports.setPaymentDetails = exports.setPersonalDetails = exports.setRequirements = exports.setFrequency = void 0;
 const Booking_1 = require("../models/Booking");
 const database_1 = require("../config/database");
+const User_1 = require("../models/User");
 const typeorm_1 = require("typeorm");
 const Booking_2 = require("../models/Booking");
 const setFrequency = async (req, res) => {
-    const { frequency, hoursRequired, preferredDay, preferredTime } = req.body;
+    const { frequency, hoursRequired, preferredDay, preferredTime, userId } = req.body;
     const queryRunner = database_1.AppDataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
+        // Find the user by ID
+        const user = await queryRunner.manager.findOne(User_1.User, { where: { id: userId } });
+        if (!user) {
+            throw new Error('User not found');
+        }
         const booking = new Booking_1.Booking();
         booking.frequency = frequency;
         booking.hoursRequired = hoursRequired;
@@ -28,6 +34,7 @@ const setFrequency = async (req, res) => {
         address.postalCode = '';
         booking.address = address; // Assign the address instance to booking
         booking.amount = 0.0;
+        booking.user = user;
         booking.paymentType = 'pending';
         await queryRunner.manager.save(booking);
         await queryRunner.commitTransaction();
