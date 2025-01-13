@@ -1,9 +1,9 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Migrations1736601171874 = void 0;
-class Migrations1736601171874 {
+exports.Migrations1736799084204 = void 0;
+class Migrations1736799084204 {
     constructor() {
-        this.name = 'Migrations1736601171874';
+        this.name = 'Migrations1736799084204';
     }
     async up(queryRunner) {
         await queryRunner.query(`CREATE TABLE "service" ("id" SERIAL NOT NULL, "title" character varying(100) NOT NULL, "description" text NOT NULL, "optional" text, "price" text, "imageUrl" character varying, "createdAt" TIMESTAMP NOT NULL DEFAULT now(), "createdById" uuid, CONSTRAINT "PK_85a21558c006647cd76fdce044b" PRIMARY KEY ("id"))`);
@@ -22,4 +22,4 @@ class Migrations1736601171874 {
         await queryRunner.query(`DROP TABLE "service"`);
     }
 }
-exports.Migrations1736601171874 = Migrations1736601171874;
+exports.Migrations1736799084204 = Migrations1736799084204;

@@ -5,9 +5,9 @@ import upload from "../../middleware/uploadMiddleware";
 
 const router = Router();
 
-router.post("/services", isSuperAdmin, isAdmin, upload.single("image"), createService); // Admin-only route with image upload
+router.post("/services", isAdmin, upload.single("image"), createService); // Admin-only route with image upload
 router.get("/services", getAllServices); // Public route for viewing services
-router.patch("/services/:id",isSuperAdmin, isAdmin, upload.single("image"), updateService); // Admin-only route with image upload
-router.delete("/services/:id",isSuperAdmin, isAdmin, deleteService); // Admin-only route
+router.patch("/services/:id", isAdmin, upload.single("image"), updateService); // Admin-only route with image upload
+router.delete("/services/:id", isAdmin, deleteService); // Admin-only route
 
 export default router;

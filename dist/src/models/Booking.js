@@ -48,17 +48,13 @@ __decorate([
     __metadata("design:type", Number)
 ], Booking.prototype, "hoursRequired", void 0);
 __decorate([
-    (0, typeorm_1.Column)('varchar', { length: 20, nullable: true }),
-    __metadata("design:type", String)
-], Booking.prototype, "preferredDay", void 0);
+    (0, typeorm_1.Column)('simple-array', { nullable: true }),
+    __metadata("design:type", Array)
+], Booking.prototype, "preferredDays", void 0);
 __decorate([
-    (0, typeorm_1.Column)('varchar', { length: 20, nullable: true }),
-    __metadata("design:type", String)
-], Booking.prototype, "preferredTime", void 0);
-__decorate([
-    (0, typeorm_1.Column)({ type: 'boolean', default: false }),
-    __metadata("design:type", Boolean)
-], Booking.prototype, "meetCleanerFirst", void 0);
+    (0, typeorm_1.Column)('simple-array', { nullable: true }),
+    __metadata("design:type", Array)
+], Booking.prototype, "preferredTimes", void 0);
 __decorate([
     (0, typeorm_1.Column)('date', { nullable: true }),
     __metadata("design:type", Date)

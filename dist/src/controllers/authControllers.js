@@ -3,11 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = exports.signup = void 0;
+exports.resetPassword = exports.sendResetPasswordLink = exports.login = exports.signup = void 0;
 const database_1 = require("../config/database");
 const User_1 = require("../models/User");
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const nodemailer_1 = __importDefault(require("nodemailer"));
 // Define the super admin email
 const superAdminEmail = "iloriemmanuel00@gmail.com";
 // Signup
@@ -60,3 +61,59 @@ const login = async (req, res) => {
     }
 };
 exports.login = login;
+// Configure the transporter for sending emails
+const transporter = nodemailer_1.default.createTransport({
+    service: "Gmail",
+    auth: {
+        user: process.env.EMAIL, // Your email
+        pass: process.env.EMAIL_PASSWORD, // Your email password
+    },
+});
+// Send Reset Password Link
+const sendResetPasswordLink = async (req, res) => {
+    const { email } = req.body;
+    try {
+        const user = await database_1.AppDataSource.getRepository(User_1.User).findOneBy({ email });
+        if (!user)
+            return res.status(404).json({ message: "User with this email not found" });
+        // Create a reset token
+        const resetToken = jsonwebtoken_1.default.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: "15m" });
+        const resetLink = `${process.env.CLIENT_URL}/reset-password?token=${resetToken}`;
+        // Send email with reset link
+        await transporter.sendMail({
+            from: `"Support" <${process.env.EMAIL}>`,
+            to: email,
+            subject: "Password Reset",
+            html: `<p>Click the link below to reset your password:</p>
+             <a href="${resetLink}">${resetLink}</a>`,
+        });
+        return res.status(200).json({ message: "Reset link sent to your email" });
+    }
+    catch (error) {
+        return res.status(500).json({ message: "Error sending reset link", error });
+    }
+};
+exports.sendResetPasswordLink = sendResetPasswordLink;
+// Reset Password
+const resetPassword = async (req, res) => {
+    const { token } = req.query;
+    const { newPassword } = req.body;
+    try {
+        if (!token)
+            return res.status(400).json({ message: "Invalid or missing token" });
+        // Verify the token
+        const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
+        const user = await database_1.AppDataSource.getRepository(User_1.User).findOneBy({ id: decoded.userId });
+        if (!user)
+            return res.status(404).json({ message: "User not found" });
+        // Hash the new password and update
+        const hashedPassword = await bcryptjs_1.default.hash(newPassword, 10);
+        user.password = hashedPassword;
+        await database_1.AppDataSource.getRepository(User_1.User).save(user);
+        return res.status(200).json({ message: "Password reset successfully" });
+    }
+    catch (error) {
+        return res.status(500).json({ message: "Error resetting password", error });
+    }
+};
+exports.resetPassword = resetPassword;

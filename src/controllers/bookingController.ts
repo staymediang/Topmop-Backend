@@ -6,25 +6,24 @@ import { MoreThan, LessThan } from 'typeorm';
 import { Address } from '../models/Booking'; 
 
 export const setFrequency = async (req: Request, res: Response) => {
-    const { frequency, hoursRequired, preferredDay, preferredTime, userId } = req.body;
+    const { frequency, hoursRequired, preferredDays, preferredTimes, userId } = req.body;
 
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-
-         // Find the user by ID
-         const user = await queryRunner.manager.findOne(User, { where: { id: userId } });
-         if (!user) {
-             throw new Error('User not found');
-         }
+        // Find the user by ID
+        const user = await queryRunner.manager.findOne(User, { where: { id: userId } });
+        if (!user) {
+            throw new Error('User not found');
+        }
 
         const booking = new Booking();
         booking.frequency = frequency;
         booking.hoursRequired = hoursRequired;
-        booking.preferredDay = preferredDay;
-        booking.preferredTime = preferredTime;
+        booking.preferredDays = preferredDays; // Assign the array directly
+        booking.preferredTimes = preferredTimes; // Assign the array directly
 
         // Set default values for other required fields
         booking.firstName = '';
@@ -59,15 +58,11 @@ export const setFrequency = async (req: Request, res: Response) => {
 
 
 
+
 export const setRequirements = async (req: Request, res: Response) => {
     const {
         bookingId,
-        meetCleanerFirst,       // Boolean: Whether the client wants to meet the cleaner
-        cleaningStartDate,      // Date: Start date for the cleaning service
-        needsIroning,           // Boolean: Whether ironing is needed
-        accessInstructions,     // String: Instructions for accessing the property
         additionalInfo,         // String: Any additional information
-        referralSource,         // String: How the client heard about the service
         dirtLevel,              // Enum: Light, Medium, Heavy
         roomSelection,          // Array: Selected rooms (e.g., { room: 'Kitchen', count: 2 })
         additionalServices      // Array: Selected additional services (e.g., { service: 'Laundry', count: 1 })
@@ -82,12 +77,7 @@ export const setRequirements = async (req: Request, res: Response) => {
         }
 
         // Update booking details
-        booking.meetCleanerFirst = !!meetCleanerFirst; // Convert to boolean
-        booking.cleaningStartDate = cleaningStartDate ? new Date(cleaningStartDate) : null; // Ensure Date type
-        booking.needsIroning = !!needsIroning;
-        booking.accessInstructions = accessInstructions || null; // Optional field
         booking.additionalInfo = additionalInfo || null;         // Optional field
-        booking.referralSource = referralSource || null;         // Optional field
         booking.dirtLevel = dirtLevel;                           // Validate against allowed values (Light, Medium, Heavy)
         booking.roomSelection = roomSelection || [];             // Store selected rooms
         booking.additionalServices = additionalServices || [];   // Store selected additional services
@@ -97,9 +87,7 @@ export const setRequirements = async (req: Request, res: Response) => {
             message: 'Requirements set successfully',
             bookingId: booking.id,
             summary: {
-                meetCleanerFirst: booking.meetCleanerFirst,
-                cleaningStartDate: booking.cleaningStartDate,
-                needsIroning: booking.needsIroning,
+                additionalInfo: booking.additionalInfo,
                 dirtLevel: booking.dirtLevel,
                 roomSelection: booking.roomSelection,
                 additionalServices: booking.additionalServices,
@@ -349,9 +337,8 @@ export const getBookingSummary = async (req: Request, res: Response) => {
         res.status(200).json({
             frequency: booking.frequency,
             hoursRequired: booking.hoursRequired,
-            preferredDay: booking.preferredDay,
-            preferredTime: booking.preferredTime,
-            meetCleanerFirst: booking.meetCleanerFirst,
+            preferredDay: booking.preferredDays,
+            preferredTime: booking.preferredTimes,
             cleaningStartDate: booking.cleaningStartDate,
             needsIroning: booking.needsIroning,
             accessInstructions: booking.accessInstructions,

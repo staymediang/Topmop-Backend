@@ -33,14 +33,13 @@ export class Booking {
     @Column('int')
     hoursRequired: number;
 
-    @Column('varchar', { length: 20, nullable: true })
-    preferredDay: string;
+    @Column('simple-array', { nullable: true })
+    preferredDays: string[]; // Stores selected days as an array (e.g., ['Monday', 'Wednesday'])
 
-    @Column('varchar', { length: 20, nullable: true })
-    preferredTime: string;
+    @Column('simple-array', { nullable: true })
+    preferredTimes: string[]; // Stores selected times as an array (e.g., ['09:00 AM', '03:00 PM'])
 
-    @Column({ type: 'boolean', default: false })
-    meetCleanerFirst: boolean;
+
 
     @Column('date', { nullable: true })
     cleaningStartDate: Date;

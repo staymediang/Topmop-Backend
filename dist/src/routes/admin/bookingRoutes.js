@@ -16,14 +16,14 @@ router.post('/payment', bookingController_1.setPaymentDetails);
 router.get('/profile', bookingController_1.getProfile);
 router.put('/profile', bookingController_1.updateProfile);
 // Booking details routes
-router.get('/booking/:bookingId', bookingController_1.getBookingDetails);
-router.get('/booking/history', bookingController_1.getBookingHistory);
-router.get('/booking/upcoming', bookingController_1.getUpcomingBookings);
-router.get('/booking/summary/:bookingId', bookingController_1.getBookingSummary);
-router.get('/booking', bookingController_1.getAllBookings);
+router.get('/:bookingId', bookingController_1.getBookingDetails);
+router.get('/history', bookingController_1.getBookingHistory);
+router.get('/upcoming', bookingController_1.getUpcomingBookings);
+router.get('/summary/:bookingId', bookingController_1.getBookingSummary);
+router.get('/', bookingController_1.getAllBookings);
 // Admin booking management routes
-router.delete('/admin/:bookingId', authMiddleware_1.isAdmin, authMiddleware_1.isSuperAdmin, bookingController_1.cancelBooking);
-router.get('/admin/ongoing-bookings', authMiddleware_1.isAdmin, authMiddleware_1.isSuperAdmin, bookingController_1.getOngoingBookings);
-router.get('/admin/completed-bookings', authMiddleware_1.isAdmin, authMiddleware_1.isSuperAdmin, bookingController_1.getCompletedBookings);
-router.get('/admin/new-bookings', authMiddleware_1.isAdmin, authMiddleware_1.isSuperAdmin, bookingController_1.getNewBookings);
+router.delete('/admin/:bookingId', authMiddleware_1.isBookingManager, bookingController_1.cancelBooking);
+router.get('/admin/ongoing-bookings', authMiddleware_1.isBookingManager, bookingController_1.getOngoingBookings);
+router.get('/admin/completed-bookings', authMiddleware_1.isBookingManager, bookingController_1.getCompletedBookings);
+router.get('/admin/new-bookings', authMiddleware_1.isBookingManager, bookingController_1.getNewBookings);
 exports.default = router;
