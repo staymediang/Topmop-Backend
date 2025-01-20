@@ -319,8 +319,9 @@ const cancelBooking = async (req, res) => {
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
         }
-        await bookingRepo.remove(booking);
-        res.status(200).json({ message: 'Booking cancelled successfully' });
+        booking.status = Booking_1.BookingStatus.CANCELLED; // Update status to "cancelled"
+        await bookingRepo.save(booking);
+        res.status(200).json({ message: 'Booking cancelled successfully', booking });
     }
     catch (error) {
         console.error("Error cancelling booking:", error);
@@ -333,7 +334,7 @@ const getOngoingBookings = async (req, res) => {
     try {
         const bookingRepo = database_1.AppDataSource.getRepository(Booking_1.Booking);
         const ongoingBookings = await bookingRepo.find({
-            where: { cleaningStartDate: (0, typeorm_1.LessThan)(new Date()), paymentType: 'pending' }, // Assuming "pending" means ongoing
+            where: { status: Booking_1.BookingStatus.ONGOING },
             relations: ['user'],
         });
         res.status(200).json({ ongoingBookings });
@@ -349,7 +350,7 @@ const getCompletedBookings = async (req, res) => {
     try {
         const bookingRepo = database_1.AppDataSource.getRepository(Booking_1.Booking);
         const completedBookings = await bookingRepo.find({
-            where: { paymentType: 'completed' }, // Assuming "completed" status
+            where: { status: Booking_1.BookingStatus.COMPLETED },
             relations: ['user'],
         });
         res.status(200).json({ completedBookings });
@@ -365,7 +366,7 @@ const getNewBookings = async (req, res) => {
     try {
         const bookingRepo = database_1.AppDataSource.getRepository(Booking_1.Booking);
         const newBookings = await bookingRepo.find({
-            where: { paymentType: 'pending' }, // Pending bookings
+            where: { status: Booking_1.BookingStatus.NEW },
             relations: ['user'],
         });
         res.status(200).json({ newBookings });
@@ -376,6 +377,7 @@ const getNewBookings = async (req, res) => {
     }
 };
 exports.getNewBookings = getNewBookings;
+// Admin: Get All Bookings
 const getAllBookings = async (req, res) => {
     try {
         const bookingRepo = database_1.AppDataSource.getRepository(Booking_1.Booking);

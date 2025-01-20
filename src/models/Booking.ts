@@ -1,4 +1,3 @@
-// Move the Address class to the top
 import {
     Entity,
     PrimaryGeneratedColumn,
@@ -8,6 +7,7 @@ import {
     ManyToOne,
 } from 'typeorm';
 import { User } from './User';
+
 export class Address {
     @Column('varchar', { length: 100, nullable: true })
     street: string;
@@ -20,6 +20,14 @@ export class Address {
 
     @Column('varchar', { length: 20, nullable: true })
     postalCode: string;
+}
+
+// Booking Status Enum
+export enum BookingStatus {
+    NEW = 'new',
+    ONGOING = 'ongoing',
+    COMPLETED = 'completed',
+    CANCELLED = 'cancelled',
 }
 
 @Entity('bookings')
@@ -38,8 +46,6 @@ export class Booking {
 
     @Column('simple-array', { nullable: true })
     preferredTimes: string[]; // Stores selected times as an array (e.g., ['09:00 AM', '03:00 PM'])
-
-
 
     @Column('date', { nullable: true })
     cleaningStartDate: Date;
@@ -97,6 +103,14 @@ export class Booking {
 
     @Column({ type: 'decimal', precision: 10, scale: 2 })
     amount: number;
+
+    // Booking Status
+    @Column({
+        type: 'enum',
+        enum: BookingStatus,
+        default: BookingStatus.NEW,
+    })
+    status: BookingStatus;
 
     @CreateDateColumn()
     createdAt: Date;

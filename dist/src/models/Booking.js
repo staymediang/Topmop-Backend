@@ -9,8 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Booking = exports.Address = void 0;
-// Move the Address class to the top
+exports.Booking = exports.BookingStatus = exports.Address = void 0;
 const typeorm_1 = require("typeorm");
 const User_1 = require("./User");
 class Address {
@@ -32,6 +31,14 @@ __decorate([
     (0, typeorm_1.Column)('varchar', { length: 20, nullable: true }),
     __metadata("design:type", String)
 ], Address.prototype, "postalCode", void 0);
+// Booking Status Enum
+var BookingStatus;
+(function (BookingStatus) {
+    BookingStatus["NEW"] = "new";
+    BookingStatus["ONGOING"] = "ongoing";
+    BookingStatus["COMPLETED"] = "completed";
+    BookingStatus["CANCELLED"] = "cancelled";
+})(BookingStatus || (exports.BookingStatus = BookingStatus = {}));
 let Booking = class Booking {
 };
 exports.Booking = Booking;
@@ -128,6 +135,14 @@ __decorate([
     (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 2 }),
     __metadata("design:type", Number)
 ], Booking.prototype, "amount", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        type: 'enum',
+        enum: BookingStatus,
+        default: BookingStatus.NEW,
+    }),
+    __metadata("design:type", String)
+], Booking.prototype, "status", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)

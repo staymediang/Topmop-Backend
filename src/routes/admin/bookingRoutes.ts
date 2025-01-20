@@ -43,4 +43,6 @@ router.get('/admin/ongoing-bookings', isBookingManager, getOngoingBookings);
 router.get('/admin/completed-bookings', isBookingManager, getCompletedBookings);
 router.get('/admin/new-bookings', isBookingManager, getNewBookings);
 
+
+
 export default router;

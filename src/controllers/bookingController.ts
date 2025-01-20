@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { Booking } from '../models/Booking';
+import { Booking, BookingStatus } from '../models/Booking';
 import { AppDataSource } from '../config/database';
 import { User } from '../models/User';
 import { MoreThan, LessThan } from 'typeorm';
@@ -367,8 +367,10 @@ export const cancelBooking = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'Booking not found' });
         }
 
-        await bookingRepo.remove(booking);
-        res.status(200).json({ message: 'Booking cancelled successfully' });
+        booking.status = BookingStatus.CANCELLED; // Update status to "cancelled"
+        await bookingRepo.save(booking);
+
+        res.status(200).json({ message: 'Booking cancelled successfully', booking });
     } catch (error) {
         console.error("Error cancelling booking:", error);
         res.status(500).json({ message: 'Error cancelling booking', error: error.message });
@@ -380,7 +382,7 @@ export const getOngoingBookings = async (req: Request, res: Response) => {
     try {
         const bookingRepo = AppDataSource.getRepository(Booking);
         const ongoingBookings = await bookingRepo.find({
-            where: { cleaningStartDate: LessThan(new Date()), paymentType: 'pending' }, // Assuming "pending" means ongoing
+            where: { status: BookingStatus.ONGOING },
             relations: ['user'],
         });
 
@@ -390,12 +392,13 @@ export const getOngoingBookings = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching ongoing bookings', error: error.message });
     }
 };
+
 // Admin: Get Completed Bookings
 export const getCompletedBookings = async (req: Request, res: Response) => {
     try {
         const bookingRepo = AppDataSource.getRepository(Booking);
         const completedBookings = await bookingRepo.find({
-            where: { paymentType: 'completed' }, // Assuming "completed" status
+            where: { status: BookingStatus.COMPLETED },
             relations: ['user'],
         });
 
@@ -411,7 +414,7 @@ export const getNewBookings = async (req: Request, res: Response) => {
     try {
         const bookingRepo = AppDataSource.getRepository(Booking);
         const newBookings = await bookingRepo.find({
-            where: { paymentType: 'pending' }, // Pending bookings
+            where: { status: BookingStatus.NEW },
             relations: ['user'],
         });
 
@@ -422,6 +425,7 @@ export const getNewBookings = async (req: Request, res: Response) => {
     }
 };
 
+// Admin: Get All Bookings
 export const getAllBookings = async (req: Request, res: Response) => {
     try {
         const bookingRepo = AppDataSource.getRepository(Booking);
@@ -435,4 +439,3 @@ export const getAllBookings = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Error fetching bookings', error: error.message });
     }
 };
-

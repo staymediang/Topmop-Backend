@@ -65,14 +65,17 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
   }
 };
 
-// Configure the transporter for sending emails
+/// Configure the transporter for sending emails
 const transporter = nodemailer.createTransport({
-  service: "Gmail",
+  host: "smtp.hostinger.com", // Hostinger's SMTP server
+  port: 465, // Secure port for SMTP
+  secure: true, // Use SSL/TLS
   auth: {
-    user: process.env.EMAIL, // Your email
-    pass: process.env.EMAIL_PASSWORD, // Your email password
+    user: process.env.EMAIL, // Your Hostinger email address
+    pass: process.env.EMAIL_PASSWORD, // Your Hostinger email password
   },
 });
+
 
 // Send Reset Password Link
 export const sendResetPasswordLink = async (req: Request, res: Response): Promise<Response> => {
