@@ -59,8 +59,8 @@ __decorate([
     __metadata("design:type", Array)
 ], Booking.prototype, "preferredDays", void 0);
 __decorate([
-    (0, typeorm_1.Column)('simple-array', { nullable: true }),
-    __metadata("design:type", Array)
+    (0, typeorm_1.Column)('varchar', { length: 10, nullable: true }),
+    __metadata("design:type", String)
 ], Booking.prototype, "preferredTimes", void 0);
 __decorate([
     (0, typeorm_1.Column)('date', { nullable: true }),
