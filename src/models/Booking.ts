@@ -44,8 +44,8 @@ export class Booking {
     @Column('simple-array', { nullable: true })
     preferredDays: string[]; // Stores selected days as an array (e.g., ['Monday', 'Wednesday'])
 
-    @Column('simple-array', { nullable: true })
-    preferredTimes: string[]; // Stores selected times as an array (e.g., ['09:00 AM', '03:00 PM'])
+    @Column('varchar', { length: 10, nullable: true })
+    preferredTimes: string;
 
     @Column('date', { nullable: true })
     cleaningStartDate: Date;

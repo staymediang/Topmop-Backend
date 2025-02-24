@@ -22,8 +22,15 @@ export const setFrequency = async (req: Request, res: Response) => {
         const booking = new Booking();
         booking.frequency = frequency;
         booking.hoursRequired = hoursRequired;
-        booking.preferredDays = preferredDays; // Assign the array directly
-        booking.preferredTimes = preferredTimes; // Assign the array directly
+        
+        // Ensure preferredDays is an array of strings before assignment
+        booking.preferredDays = Array.isArray(preferredDays) ? preferredDays : [preferredDays];
+        
+        // Ensure preferredTimes is a valid string
+        if (typeof preferredTimes !== 'string') {
+            throw new Error('Invalid preferred time format');
+        }
+        booking.preferredTimes = preferredTimes; // Assign the string directly
 
         // Set default values for other required fields
         booking.firstName = '';
@@ -31,15 +38,15 @@ export const setFrequency = async (req: Request, res: Response) => {
         booking.contactNumber = '';
         booking.email = '';
 
-        const address = new Address(); // Create an instance of Address
+        const address = new Address();
         address.street = '';
         address.number = '';
         address.city = '';
         address.postalCode = '';
-        booking.address = address; // Assign the address instance to booking
+        booking.address = address;
+
         booking.amount = 0.0;
         booking.user = user;
-
         booking.paymentType = 'pending';
 
         await queryRunner.manager.save(booking);
@@ -54,9 +61,6 @@ export const setFrequency = async (req: Request, res: Response) => {
         await queryRunner.release();
     }
 };
-
-
-
 
 
 export const setRequirements = async (req: Request, res: Response) => {

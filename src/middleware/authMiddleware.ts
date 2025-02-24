@@ -22,9 +22,10 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
 
 // Middleware to check if user is an admin
 export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if (req.user?.role?.toLowerCase() !== "admin".toLowerCase() && req.user?.role !== "super admin".toLowerCase()) {
-    return res.status(403).json({ message: "Access restricted to admin only" });
-  }
+  if (req.user?.role?.toLowerCase() !== "admin" && req.user?.role?.toLowerCase() !== "super admin") {
+  return res.status(403).json({ message: "Access restricted to admin only" });
+}
+
   next();
 };
 
