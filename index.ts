@@ -1,5 +1,3 @@
-import https from "https";
-import fs from "fs";
 import express from "express";
 import cors from "cors"; // Import the cors module
 import "reflect-metadata"; 
@@ -19,7 +17,7 @@ const app = express();
 const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5001;
 
 // Enable CORS for all origins
-app.use(cors()); // Allow requests from any origin during development
+app.use(cors()); 
 
 app.use(express.json()); 
 
@@ -33,26 +31,19 @@ app.get('/', (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/booking", bookingRoutes);
 app.use("/api/admin", serviceRoutes);
-app.use("/api/notification", notificationRoutes)
-app.use("/api/profile", profileRoutes)
-
+app.use("/api/notification", notificationRoutes);
+app.use("/api/profile", profileRoutes);
 
 // Serve uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));
 
-// Load SSL credentials
-const sslOptions = {
-    key: fs.readFileSync("/etc/nginx/ssl/nginx-selfsigned.key"),
-    cert: fs.readFileSync("/etc/nginx/ssl/nginx-selfsigned.crt")
-};
-
-// Initialize database and start the server with HTTPS
+// Initialize database and start the server
 AppDataSource.initialize()
     .then(() => {
         console.log("Database connected");
 
-        https.createServer(sslOptions, app).listen(port, '0.0.0.0', () => {
-            console.log("HTTPS Server running on port", port);
+        app.listen(port, '0.0.0.0', () => {
+            console.log(`Server running on port ${port}`);
         });
     })
     .catch((error) => console.error("Database connection error: ", error));
