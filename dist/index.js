@@ -16,9 +16,14 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
-const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5001;
-// Enable CORS for all origins
-app.use((0, cors_1.default)());
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 443;
+// Enable CORS for specific origins
+app.use((0, cors_1.default)({
+    origin: ["https://topmopcleaningsolutions.co.uk"], // Allow only this origin
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true
+}));
 app.use(express_1.default.json());
 // Define a route for the root path
 app.get('/', (req, res) => {
