@@ -14,7 +14,7 @@ dotenv.config();
 
 const app = express();
 
-const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
 
 // Enable CORS for specific origins
 app.use(cors({
