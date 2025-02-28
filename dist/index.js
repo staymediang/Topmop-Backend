@@ -19,7 +19,7 @@ const app = (0, express_1.default)();
 const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
 // Enable CORS for specific origins
 app.use((0, cors_1.default)({
-    origin: ["https://topmopcleaningsolutions.co.uk"], // Allow only this origin
+    origin: ["https://topmopcleaningsolutions.co.uk, http://localhost:3000"], // Allow only this origin
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
     credentials: true
