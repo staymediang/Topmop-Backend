@@ -22,7 +22,6 @@ export class Address {
     postalCode: string;
 }
 
-// Booking Status Enum
 export enum BookingStatus {
     NEW = 'new',
     ONGOING = 'ongoing',
@@ -42,7 +41,7 @@ export class Booking {
     hoursRequired: number;
 
     @Column('simple-array', { nullable: true })
-    preferredDays: string[]; // Stores selected days as an array (e.g., ['Monday', 'Wednesday'])
+    preferredDays: string[];
 
     @Column('varchar', { length: 10, nullable: true })
     preferredTimes: string;
@@ -78,14 +77,8 @@ export class Booking {
     @Column('varchar', { length: 100, nullable: true })
     email: string;
 
-    @Column(() => Address) // Embedding the Address object
+    @Column(() => Address) // Embedding Address (no separate table)
     address: Address;
-
-    @Column('varchar', { length: 50, nullable: true })
-    city: string;
-
-    @Column('varchar', { length: 20, nullable: true })
-    postalCode: string;
 
     // Booking Details
     @Column('varchar', { length: 50, nullable: true })

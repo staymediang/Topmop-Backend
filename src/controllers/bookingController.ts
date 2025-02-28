@@ -6,14 +6,13 @@ import { MoreThan, LessThan } from 'typeorm';
 import { Address } from '../models/Booking'; 
 
 export const setFrequency = async (req: Request, res: Response) => {
-    const { frequency, hoursRequired, preferredDays, preferredTimes, userId } = req.body;
+    let { frequency, hoursRequired, preferredDay, preferredDays, preferredTime, userId } = req.body;
 
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 
     try {
-        // Find the user by ID
         const user = await queryRunner.manager.findOne(User, { where: { id: userId } });
         if (!user) {
             throw new Error('User not found');
@@ -21,18 +20,25 @@ export const setFrequency = async (req: Request, res: Response) => {
 
         const booking = new Booking();
         booking.frequency = frequency;
-        booking.hoursRequired = hoursRequired;
-        
-        // Ensure preferredDays is an array of strings before assignment
-        booking.preferredDays = Array.isArray(preferredDays) ? preferredDays : [preferredDays];
-        
-        // Ensure preferredTimes is a valid string
-        if (typeof preferredTimes !== 'string') {
+
+        // Ensure hoursRequired is a number
+        booking.hoursRequired = Number(hoursRequired);
+
+        // Handle both "preferredDay" and "preferredDays"
+        if (Array.isArray(preferredDays)) {
+            booking.preferredDays = preferredDays;
+        } else if (Array.isArray(preferredDay)) {
+            booking.preferredDays = preferredDay;
+        } else {
+            throw new Error('Invalid format for preferred days');
+        }
+
+        if (typeof preferredTime !== 'string') {
             throw new Error('Invalid preferred time format');
         }
-        booking.preferredTimes = preferredTimes; // Assign the string directly
+        booking.preferredTimes = preferredTime;
 
-        // Set default values for other required fields
+        // Set default values for required fields
         booking.firstName = '';
         booking.lastName = '';
         booking.contactNumber = '';
@@ -61,6 +67,7 @@ export const setFrequency = async (req: Request, res: Response) => {
         await queryRunner.release();
     }
 };
+
 
 
 export const setRequirements = async (req: Request, res: Response) => {
@@ -110,24 +117,14 @@ export const setPersonalDetails = async (req: Request, res: Response) => {
 
     try {
         const bookingRepo = AppDataSource.getRepository(Booking);
-        const booking = await bookingRepo.findOne({ where: { id: bookingId } });
+        const booking = await bookingRepo.findOne({ where: { id: bookingId }, relations: ['address'] });
 
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
         }
 
-        if (
-            !title ||
-            !firstName ||
-            !lastName ||
-            !contactNumber ||
-            !email ||
-            !address ||
-            !address.street ||
-            !address.number ||
-            !address.city ||
-            !address.postalCode
-        ) {
+        if (!title || !firstName || !lastName || !contactNumber || !email || !address || 
+            !address.street || !address.number || !address.city || !address.postalCode) {
             return res.status(400).json({ message: 'All personal details are required' });
         }
 
@@ -136,17 +133,19 @@ export const setPersonalDetails = async (req: Request, res: Response) => {
         booking.lastName = lastName;
         booking.contactNumber = contactNumber;
         booking.email = email;
-        booking.address = {
-            street: address.street,
-            number: address.number,
-            city: address.city,
-            postalCode: address.postalCode,
-        };
+
+        if (!booking.address) {
+            booking.address = new Address();
+        }
+        booking.address.street = address.street;
+        booking.address.number = address.number;
+        booking.address.city = address.city;
+        booking.address.postalCode = address.postalCode;
 
         await bookingRepo.save(booking);
         res.status(200).json({ message: 'Personal details updated successfully' });
     } catch (error) {
-        console.error("Error details:", error);
+        console.error("Error updating personal details:", error);
         res.status(500).json({ message: 'Error updating personal details', error: error.message });
     }
 };
@@ -156,104 +155,100 @@ export const setPaymentDetails = async (req: Request, res: Response) => {
 
     try {
         const bookingRepo = AppDataSource.getRepository(Booking);
-        const booking = await bookingRepo.findOne({ where: { id: bookingId } });
+        const booking = await bookingRepo.findOne({ where: { id: bookingId }, relations: ['address'] });
 
         if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
         }
 
-        // Debugging statement to check if booking has all personal details
-        console.log("Retrieved booking details:", {
-            firstName: booking.firstName,
-            lastName: booking.lastName,
-            contactNumber: booking.contactNumber,
-            email: booking.email,
-            address: booking.address,
-            city: booking.city,
-            postalCode: booking.postalCode,
-        });
-
-        // Check for required personal details
         const missingFields = [];
         if (!booking.firstName) missingFields.push('firstName');
         if (!booking.lastName) missingFields.push('lastName');
         if (!booking.contactNumber) missingFields.push('contactNumber');
         if (!booking.email) missingFields.push('email');
-        if (!booking.address) missingFields.push('address');
-        if (!booking.city) missingFields.push('city');
-
-        if (missingFields.length > 0) {
-            console.error("Missing fields in booking details:", missingFields);
-            return res.status(400).json({
-                message: `Missing required personal details: ${missingFields.join(', ')}`,
-            });
+        if (!booking.address || !booking.address.street || !booking.address.city || !booking.address.postalCode) {
+            missingFields.push('address (street, city, postalCode)');
         }
 
-        // Debugging statement before setting payment details
-        console.log("All required personal details are present. Proceeding to set payment details.");
+        if (missingFields.length > 0) {
+            console.error("Missing fields:", missingFields);
+            return res.status(400).json({ message: `Missing required personal details: ${missingFields.join(', ')}` });
+        }
 
-        // Proceed with setting payment details
         booking.paymentType = paymentType;
         booking.amount = amount;
 
         await bookingRepo.save(booking);
         res.status(200).json({ message: 'Payment details set. Booking complete.', booking });
     } catch (error) {
-        console.error("Error details:", error);
+        console.error("Error setting payment details:", error);
         res.status(500).json({ message: 'Error setting payment details', error: error.message });
     }
 };
 
 
+
 export const getProfile = async (req: Request, res: Response) => {
     try {
-      const userId = req.user?.userId; // Ensure this is treated as a string
-      const bookingRepo = AppDataSource.getRepository(Booking);
-  
-      const profile = await bookingRepo.findOne({ where: { user: { id: userId } } }); // Use the relation properly
-  
-      if (!profile) {
-        return res.status(404).json({ message: 'Profile not found' });
-      }
-  
-      const { firstName, lastName, email, contactNumber, address, city, postalCode } = profile;
-      res.status(200).json({ firstName, lastName, email, contactNumber, address, city, postalCode });
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      res.status(500).json({ message: 'Error fetching profile', error: error.message });
-    }
-  };
-  
-  export const updateProfile = async (req: Request, res: Response) => {
-    const { firstName, lastName, contactNumber, email, address, city, postalCode } = req.body;
-  
-    try {
-      const userId = req.user?.userId;
-      const bookingRepo = AppDataSource.getRepository(Booking);
-  
-      const profile = await bookingRepo.findOne({ where: { user: { id: userId } } }); // Use the relation properly
-  
-      if (!profile) {
-        return res.status(404).json({ message: 'Profile not found' });
-      }
-  
-      profile.firstName = firstName || profile.firstName;
-      profile.lastName = lastName || profile.lastName;
-      profile.contactNumber = contactNumber || profile.contactNumber;
-      profile.email = email || profile.email;
-      profile.address = address || profile.address;
-      profile.city = city || profile.city;
-      profile.postalCode = postalCode || profile.postalCode;
-  
-      await bookingRepo.save(profile);
-      res.status(200).json({ message: 'Profile updated successfully', profile });
-    } catch (error) {
-      console.error("Error updating profile:", error);
-      res.status(500).json({ message: 'Error updating profile', error: error.message });
-    }
-  };
-  
+        const userId = req.user?.userId; // Ensure this is treated as a string
+        const bookingRepo = AppDataSource.getRepository(Booking);
 
+        const profile = await bookingRepo.findOne({ where: { user: { id: userId } } });
+
+        if (!profile) {
+            return res.status(404).json({ message: 'Profile not found' });
+        }
+
+        const { firstName, lastName, email, contactNumber, address } = profile;
+        const { street, number, city, postalCode } = address || {}; // Handle missing address
+
+        res.status(200).json({ 
+            firstName, 
+            lastName, 
+            email, 
+            contactNumber, 
+            address: { street, number, city, postalCode } 
+        });
+    } catch (error) {
+        console.error("Error fetching profile:", error);
+        res.status(500).json({ message: 'Error fetching profile', error: error.message });
+    }
+};
+export const updateProfile = async (req: Request, res: Response) => {
+    const { firstName, lastName, contactNumber, email, street, number, city, postalCode } = req.body;
+
+    try {
+        const userId = req.user?.userId;
+        const bookingRepo = AppDataSource.getRepository(Booking);
+
+        const profile = await bookingRepo.findOne({ where: { user: { id: userId } } });
+
+        if (!profile) {
+            return res.status(404).json({ message: 'Profile not found' });
+        }
+
+        profile.firstName = firstName || profile.firstName;
+        profile.lastName = lastName || profile.lastName;
+        profile.contactNumber = contactNumber || profile.contactNumber;
+        profile.email = email || profile.email;
+
+        // Ensure address exists before updating
+        if (!profile.address) {
+            profile.address = new Address();
+        }
+        
+        profile.address.street = street || profile.address.street;
+        profile.address.number = number || profile.address.number;
+        profile.address.city = city || profile.address.city;
+        profile.address.postalCode = postalCode || profile.address.postalCode;
+
+        await bookingRepo.save(profile);
+        res.status(200).json({ message: 'Profile updated successfully', profile });
+    } catch (error) {
+        console.error("Error updating profile:", error);
+        res.status(500).json({ message: 'Error updating profile', error: error.message });
+    }
+};
 export const getBookingDetails = async (req: Request, res: Response) => {
     const { bookingId } = req.params;
 

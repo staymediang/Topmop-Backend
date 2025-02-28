@@ -31,7 +31,6 @@ __decorate([
     (0, typeorm_1.Column)('varchar', { length: 20, nullable: true }),
     __metadata("design:type", String)
 ], Address.prototype, "postalCode", void 0);
-// Booking Status Enum
 var BookingStatus;
 (function (BookingStatus) {
     BookingStatus["NEW"] = "new";
@@ -103,18 +102,10 @@ __decorate([
     __metadata("design:type", String)
 ], Booking.prototype, "email", void 0);
 __decorate([
-    (0, typeorm_1.Column)(() => Address) // Embedding the Address object
+    (0, typeorm_1.Column)(() => Address) // Embedding Address (no separate table)
     ,
     __metadata("design:type", Address)
 ], Booking.prototype, "address", void 0);
-__decorate([
-    (0, typeorm_1.Column)('varchar', { length: 50, nullable: true }),
-    __metadata("design:type", String)
-], Booking.prototype, "city", void 0);
-__decorate([
-    (0, typeorm_1.Column)('varchar', { length: 20, nullable: true }),
-    __metadata("design:type", String)
-], Booking.prototype, "postalCode", void 0);
 __decorate([
     (0, typeorm_1.Column)('varchar', { length: 50, nullable: true }),
     __metadata("design:type", String)
