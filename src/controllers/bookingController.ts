@@ -33,9 +33,14 @@ export const setFrequency = async (req: Request, res: Response) => {
             throw new Error('Invalid format for preferred days');
         }
 
-        if (typeof preferredTime !== 'string') {
-            throw new Error('Invalid preferred time format');
+        if (!preferredTime || typeof preferredTime !== 'string') {
+            console.error('Invalid preferredTime:', preferredTime);
+            throw new Error('Invalid preferred time format. Expected a string.');
         }
+        
+        console.log('Received preferredTime:', preferredTime);
+        console.log('Type of preferredTime:', typeof preferredTime);
+
         booking.preferredTimes = preferredTime;
 
         // Set default values for required fields
