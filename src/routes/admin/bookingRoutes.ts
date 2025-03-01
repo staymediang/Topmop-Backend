@@ -3,7 +3,6 @@ import {
     setFrequency,
     setRequirements,
     setPersonalDetails,
-    setPaymentDetails,
     getProfile,
     updateProfile,
     getBookingDetails,
@@ -24,16 +23,16 @@ const router = express.Router();
 router.post('/frequency', setFrequency);
 router.post('/requirements', setRequirements);
 router.post('/personal-details', setPersonalDetails);
-router.post('/payment', setPaymentDetails);
+
 
 // User profile related routes
 router.get('/profile', getProfile);
 router.put('/profile', updateProfile);
 
 // Booking details routes
-router.get('/:bookingId', getBookingDetails);
 router.get('/history', getBookingHistory);
 router.get('/upcoming', getUpcomingBookings);
+router.get('/:bookingId', getBookingDetails);
 router.get('/summary/:bookingId', getBookingSummary);
 router.get('/', getAllBookings);
 

@@ -49,6 +49,15 @@ export class Booking {
     @Column('date', { nullable: true })
     cleaningStartDate: Date;
 
+    @Column({ type: 'varchar', length: 100, nullable: true })
+    paymentReference: string; // Paystack transaction reference
+
+    @Column({ type: 'varchar', length: 20, default: 'pending' }) // pending, paid, failed
+    paymentStatus: string;
+
+    @Column({ type: 'varchar', length: 20, default: 'paystack' }) // paystack, cash, card
+    paymentType: string;
+
     @Column({ type: 'boolean', default: false })
     needsIroning: boolean;
 
@@ -91,9 +100,6 @@ export class Booking {
     additionalServices: string;
 
     // Payment Details
-    @Column('varchar', { length: 20 })
-    paymentType: string;
-
     @Column({ type: 'decimal', precision: 10, scale: 2 })
     amount: number;
 

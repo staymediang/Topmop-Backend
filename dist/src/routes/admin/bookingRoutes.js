@@ -11,14 +11,13 @@ const router = express_1.default.Router();
 router.post('/frequency', bookingController_1.setFrequency);
 router.post('/requirements', bookingController_1.setRequirements);
 router.post('/personal-details', bookingController_1.setPersonalDetails);
-router.post('/payment', bookingController_1.setPaymentDetails);
 // User profile related routes
 router.get('/profile', bookingController_1.getProfile);
 router.put('/profile', bookingController_1.updateProfile);
 // Booking details routes
-router.get('/:bookingId', bookingController_1.getBookingDetails);
 router.get('/history', bookingController_1.getBookingHistory);
 router.get('/upcoming', bookingController_1.getUpcomingBookings);
+router.get('/:bookingId', bookingController_1.getBookingDetails);
 router.get('/summary/:bookingId', bookingController_1.getBookingSummary);
 router.get('/', bookingController_1.getAllBookings);
 // Admin booking management routes

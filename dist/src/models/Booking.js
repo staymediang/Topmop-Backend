@@ -66,6 +66,20 @@ __decorate([
     __metadata("design:type", Date)
 ], Booking.prototype, "cleaningStartDate", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 100, nullable: true }),
+    __metadata("design:type", String)
+], Booking.prototype, "paymentReference", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 20, default: 'pending' }) // pending, paid, failed
+    ,
+    __metadata("design:type", String)
+], Booking.prototype, "paymentStatus", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ type: 'varchar', length: 20, default: 'paystack' }) // paystack, cash, card
+    ,
+    __metadata("design:type", String)
+], Booking.prototype, "paymentType", void 0);
+__decorate([
     (0, typeorm_1.Column)({ type: 'boolean', default: false }),
     __metadata("design:type", Boolean)
 ], Booking.prototype, "needsIroning", void 0);
@@ -118,10 +132,6 @@ __decorate([
     (0, typeorm_1.Column)('text', { nullable: true }),
     __metadata("design:type", String)
 ], Booking.prototype, "additionalServices", void 0);
-__decorate([
-    (0, typeorm_1.Column)('varchar', { length: 20 }),
-    __metadata("design:type", String)
-], Booking.prototype, "paymentType", void 0);
 __decorate([
     (0, typeorm_1.Column)({ type: 'decimal', precision: 10, scale: 2 }),
     __metadata("design:type", Number)

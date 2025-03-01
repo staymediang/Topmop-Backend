@@ -9,6 +9,7 @@ import notificationRoutes from "./src/routes/notificationRoutes";
 import profileRoutes from "./src/routes/profileRoutes"
 import dotenv from "dotenv"; 
 import path from "path"; 
+import paymentRoutes from './src/routes/paymentRoutes';
 
 dotenv.config();
 
@@ -39,6 +40,7 @@ app.use("/api/booking", bookingRoutes);
 app.use("/api/admin", serviceRoutes);
 app.use("/api/notification", notificationRoutes);
 app.use("/api/profile", profileRoutes);
+app.use('/api/payment', paymentRoutes);
 
 // Serve uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "../uploads")));

@@ -14,6 +14,7 @@ const notificationRoutes_1 = __importDefault(require("./src/routes/notificationR
 const profileRoutes_1 = __importDefault(require("./src/routes/profileRoutes"));
 const dotenv_1 = __importDefault(require("dotenv"));
 const path_1 = __importDefault(require("path"));
+const paymentRoutes_1 = __importDefault(require("./src/routes/paymentRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 5000;
@@ -36,6 +37,7 @@ app.use("/api/booking", bookingRoutes_1.default);
 app.use("/api/admin", serviceRoutes_1.default);
 app.use("/api/notification", notificationRoutes_1.default);
 app.use("/api/profile", profileRoutes_1.default);
+app.use('/api/payment', paymentRoutes_1.default);
 // Serve uploaded images
 app.use("/uploads", express_1.default.static(path_1.default.join(__dirname, "../uploads")));
 // Initialize database and start the server

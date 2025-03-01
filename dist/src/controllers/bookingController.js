@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllBookings = exports.getNewBookings = exports.getCompletedBookings = exports.getOngoingBookings = exports.cancelBooking = exports.getBookingSummary = exports.getUpcomingBookings = exports.getBookingHistory = exports.getBookingDetails = exports.updateProfile = exports.getProfile = exports.setPaymentDetails = exports.setPersonalDetails = exports.setRequirements = exports.setFrequency = void 0;
+exports.getAllBookings = exports.getNewBookings = exports.getCompletedBookings = exports.getOngoingBookings = exports.cancelBooking = exports.getBookingSummary = exports.getUpcomingBookings = exports.getBookingHistory = exports.getBookingDetails = exports.updateProfile = exports.getProfile = exports.setPersonalDetails = exports.setRequirements = exports.setFrequency = void 0;
 const Booking_1 = require("../models/Booking");
 const database_1 = require("../config/database");
 const User_1 = require("../models/User");
@@ -133,41 +133,6 @@ const setPersonalDetails = async (req, res) => {
     }
 };
 exports.setPersonalDetails = setPersonalDetails;
-const setPaymentDetails = async (req, res) => {
-    const { bookingId, paymentType, amount } = req.body;
-    try {
-        const bookingRepo = database_1.AppDataSource.getRepository(Booking_1.Booking);
-        const booking = await bookingRepo.findOne({ where: { id: bookingId }, relations: ['address'] });
-        if (!booking) {
-            return res.status(404).json({ message: 'Booking not found' });
-        }
-        const missingFields = [];
-        if (!booking.firstName)
-            missingFields.push('firstName');
-        if (!booking.lastName)
-            missingFields.push('lastName');
-        if (!booking.contactNumber)
-            missingFields.push('contactNumber');
-        if (!booking.email)
-            missingFields.push('email');
-        if (!booking.address || !booking.address.street || !booking.address.city || !booking.address.postalCode) {
-            missingFields.push('address (street, city, postalCode)');
-        }
-        if (missingFields.length > 0) {
-            console.error("Missing fields:", missingFields);
-            return res.status(400).json({ message: `Missing required personal details: ${missingFields.join(', ')}` });
-        }
-        booking.paymentType = paymentType;
-        booking.amount = amount;
-        await bookingRepo.save(booking);
-        res.status(200).json({ message: 'Payment details set. Booking complete.', booking });
-    }
-    catch (error) {
-        console.error("Error setting payment details:", error);
-        res.status(500).json({ message: 'Error setting payment details', error: error.message });
-    }
-};
-exports.setPaymentDetails = setPaymentDetails;
 const getProfile = async (req, res) => {
     try {
         const userId = req.user?.userId; // Ensure this is treated as a string
@@ -193,32 +158,33 @@ const getProfile = async (req, res) => {
 };
 exports.getProfile = getProfile;
 const updateProfile = async (req, res) => {
-    const { firstName, lastName, contactNumber, email, street, number, city, postalCode } = req.body;
+    const { firstName, lastName, contactNumber, email, address } = req.body;
+    const { street, number, city, postalCode } = address || {};
     try {
         const userId = req.user?.userId;
         const bookingRepo = database_1.AppDataSource.getRepository(Booking_1.Booking);
         const profile = await bookingRepo.findOne({ where: { user: { id: userId } } });
         if (!profile) {
-            return res.status(404).json({ message: 'Profile not found' });
+            return res.status(404).json({ message: "Profile not found" });
         }
         profile.firstName = firstName || profile.firstName;
         profile.lastName = lastName || profile.lastName;
         profile.contactNumber = contactNumber || profile.contactNumber;
         profile.email = email || profile.email;
-        // Ensure address exists before updating
-        if (!profile.address) {
-            profile.address = new Booking_2.Address();
-        }
-        profile.address.street = street || profile.address.street;
-        profile.address.number = number || profile.address.number;
-        profile.address.city = city || profile.address.city;
-        profile.address.postalCode = postalCode || profile.address.postalCode;
+        // **Explicitly create a new Address object**
+        profile.address = {
+            street: street || profile.address?.street,
+            number: number || profile.address?.number,
+            city: city || profile.address?.city,
+            postalCode: postalCode || profile.address?.postalCode,
+        };
+        // Save the updated profile
         await bookingRepo.save(profile);
-        res.status(200).json({ message: 'Profile updated successfully', profile });
+        res.status(200).json({ message: "Profile updated successfully", profile });
     }
     catch (error) {
         console.error("Error updating profile:", error);
-        res.status(500).json({ message: 'Error updating profile', error: error.message });
+        res.status(500).json({ message: "Error updating profile", error: error.message });
     }
 };
 exports.updateProfile = updateProfile;
@@ -239,7 +205,7 @@ const getBookingDetails = async (req, res) => {
 };
 exports.getBookingDetails = getBookingDetails;
 const getBookingHistory = async (req, res) => {
-    const userId = req.user?.userId?.toString(); // Ensure it's a string
+    const userId = req.user?.userId?.toString();
     const { year, month } = req.query;
     try {
         const bookingRepo = database_1.AppDataSource.getRepository(Booking_1.Booking);
@@ -250,10 +216,8 @@ const getBookingHistory = async (req, res) => {
         if (year && month) {
             const startDate = new Date(Number(year), Number(month) - 1, 1);
             const endDate = new Date(Number(year), Number(month), 0, 23, 59, 59);
-            queryOptions.where = {
-                ...queryOptions.where,
-                createdAt: (0, typeorm_1.MoreThan)(startDate) && (0, typeorm_1.LessThan)(endDate), // Combine conditions
-            };
+            queryOptions.where.createdAt = (0, typeorm_1.MoreThanOrEqual)(startDate);
+            queryOptions.where.createdAt = (0, typeorm_1.LessThanOrEqual)(endDate);
         }
         const bookings = await bookingRepo.find(queryOptions);
         res.status(200).json({ bookings });
@@ -271,7 +235,7 @@ const getUpcomingBookings = async (req, res) => {
         const upcomingBookings = await bookingRepo.find({
             where: {
                 user: { id: userId }, // Ensure `user` is treated as a relation
-                cleaningStartDate: (0, typeorm_1.MoreThan)(new Date()),
+                cleaningStartDate: (0, typeorm_1.MoreThanOrEqual)(new Date()),
             },
             relations: ['user'], // Include related user data
         });

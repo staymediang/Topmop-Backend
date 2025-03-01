@@ -2,8 +2,10 @@ import { Request, Response } from 'express';
 import { Booking, BookingStatus } from '../models/Booking';
 import { AppDataSource } from '../config/database';
 import { User } from '../models/User';
-import { MoreThan, LessThan } from 'typeorm';
+import { MoreThanOrEqual, LessThanOrEqual } from 'typeorm';
 import { Address } from '../models/Booking'; 
+
+
 
 export const setFrequency = async (req: Request, res: Response) => {
     let { frequency, hoursRequired, preferredDay, preferredDays, preferredTime, userId } = req.body;
@@ -155,42 +157,6 @@ export const setPersonalDetails = async (req: Request, res: Response) => {
     }
 };
 
-export const setPaymentDetails = async (req: Request, res: Response) => {
-    const { bookingId, paymentType, amount } = req.body;
-
-    try {
-        const bookingRepo = AppDataSource.getRepository(Booking);
-        const booking = await bookingRepo.findOne({ where: { id: bookingId }, relations: ['address'] });
-
-        if (!booking) {
-            return res.status(404).json({ message: 'Booking not found' });
-        }
-
-        const missingFields = [];
-        if (!booking.firstName) missingFields.push('firstName');
-        if (!booking.lastName) missingFields.push('lastName');
-        if (!booking.contactNumber) missingFields.push('contactNumber');
-        if (!booking.email) missingFields.push('email');
-        if (!booking.address || !booking.address.street || !booking.address.city || !booking.address.postalCode) {
-            missingFields.push('address (street, city, postalCode)');
-        }
-
-        if (missingFields.length > 0) {
-            console.error("Missing fields:", missingFields);
-            return res.status(400).json({ message: `Missing required personal details: ${missingFields.join(', ')}` });
-        }
-
-        booking.paymentType = paymentType;
-        booking.amount = amount;
-
-        await bookingRepo.save(booking);
-        res.status(200).json({ message: 'Payment details set. Booking complete.', booking });
-    } catch (error) {
-        console.error("Error setting payment details:", error);
-        res.status(500).json({ message: 'Error setting payment details', error: error.message });
-    }
-};
-
 
 
 export const getProfile = async (req: Request, res: Response) => {
@@ -220,7 +186,8 @@ export const getProfile = async (req: Request, res: Response) => {
     }
 };
 export const updateProfile = async (req: Request, res: Response) => {
-    const { firstName, lastName, contactNumber, email, street, number, city, postalCode } = req.body;
+    const { firstName, lastName, contactNumber, email, address } = req.body;
+    const { street, number, city, postalCode } = address || {};
 
     try {
         const userId = req.user?.userId;
@@ -229,7 +196,7 @@ export const updateProfile = async (req: Request, res: Response) => {
         const profile = await bookingRepo.findOne({ where: { user: { id: userId } } });
 
         if (!profile) {
-            return res.status(404).json({ message: 'Profile not found' });
+            return res.status(404).json({ message: "Profile not found" });
         }
 
         profile.firstName = firstName || profile.firstName;
@@ -237,23 +204,24 @@ export const updateProfile = async (req: Request, res: Response) => {
         profile.contactNumber = contactNumber || profile.contactNumber;
         profile.email = email || profile.email;
 
-        // Ensure address exists before updating
-        if (!profile.address) {
-            profile.address = new Address();
-        }
-        
-        profile.address.street = street || profile.address.street;
-        profile.address.number = number || profile.address.number;
-        profile.address.city = city || profile.address.city;
-        profile.address.postalCode = postalCode || profile.address.postalCode;
+        // **Explicitly create a new Address object**
+        profile.address = {
+            street: street || profile.address?.street,
+            number: number || profile.address?.number,
+            city: city || profile.address?.city,
+            postalCode: postalCode || profile.address?.postalCode,
+        };
 
+        // Save the updated profile
         await bookingRepo.save(profile);
-        res.status(200).json({ message: 'Profile updated successfully', profile });
+
+        res.status(200).json({ message: "Profile updated successfully", profile });
     } catch (error) {
         console.error("Error updating profile:", error);
-        res.status(500).json({ message: 'Error updating profile', error: error.message });
+        res.status(500).json({ message: "Error updating profile", error: error.message });
     }
 };
+
 export const getBookingDetails = async (req: Request, res: Response) => {
     const { bookingId } = req.params;
 
@@ -273,7 +241,7 @@ export const getBookingDetails = async (req: Request, res: Response) => {
 };
 
 export const getBookingHistory = async (req: Request, res: Response) => {
-    const userId = req.user?.userId?.toString(); // Ensure it's a string
+    const userId = req.user?.userId?.toString();
     const { year, month } = req.query;
 
     try {
@@ -288,12 +256,9 @@ export const getBookingHistory = async (req: Request, res: Response) => {
             const startDate = new Date(Number(year), Number(month) - 1, 1);
             const endDate = new Date(Number(year), Number(month), 0, 23, 59, 59);
         
-            queryOptions.where = {
-                ...queryOptions.where,
-                createdAt: MoreThan(startDate) && LessThan(endDate), // Combine conditions
-            };
+            queryOptions.where.createdAt = MoreThanOrEqual(startDate);
+            queryOptions.where.createdAt = LessThanOrEqual(endDate);
         }
-        
 
         const bookings = await bookingRepo.find(queryOptions);
 
@@ -305,7 +270,6 @@ export const getBookingHistory = async (req: Request, res: Response) => {
 };
 
 
-
 export const getUpcomingBookings = async (req: Request, res: Response) => {
     const userId = req.user?.userId?.toString(); // Ensure it's a string
 
@@ -314,7 +278,7 @@ export const getUpcomingBookings = async (req: Request, res: Response) => {
         const upcomingBookings = await bookingRepo.find({
             where: {
                 user: { id: userId }, // Ensure `user` is treated as a relation
-                cleaningStartDate: MoreThan(new Date()),
+                cleaningStartDate: MoreThanOrEqual(new Date()),
             },
             relations: ['user'], // Include related user data
         });

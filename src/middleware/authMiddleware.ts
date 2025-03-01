@@ -37,10 +37,13 @@ export const isSuperAdmin = (req: Request, res: Response, next: NextFunction) =>
   next();
 };
 
-// Middleware to check if user is a booking manager
 export const isBookingManager = (req: Request, res: Response, next: NextFunction) => {
-  if (req.user?.role.toLowerCase() !== "booking_manager".toLowerCase() && req.user?.role !== "super admin".toLowerCase()) {
+  const userRole = req.user?.role?.toLowerCase();
+
+  if (userRole !== "booking_manager" && userRole !== "super admin") {
     return res.status(403).json({ message: "Access restricted to booking manager or super admin only" });
   }
+
   next();
 };
+
