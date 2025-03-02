@@ -21,8 +21,8 @@ router.get('/:bookingId', bookingController_1.getBookingDetails);
 router.get('/summary/:bookingId', bookingController_1.getBookingSummary);
 router.get('/', bookingController_1.getAllBookings);
 // Admin booking management routes
-router.delete('/admin/:bookingId', authMiddleware_1.isBookingManager, bookingController_1.cancelBooking);
-router.get('/admin/ongoing-bookings', authMiddleware_1.isBookingManager, bookingController_1.getOngoingBookings);
-router.get('/admin/completed-bookings', authMiddleware_1.isBookingManager, bookingController_1.getCompletedBookings);
-router.get('/admin/new-bookings', authMiddleware_1.isBookingManager, bookingController_1.getNewBookings);
+router.delete('/admin/:bookingId', authMiddleware_1.verifyToken, authMiddleware_1.isBookingManager, bookingController_1.cancelBooking);
+router.get('/admin/ongoing-bookings', authMiddleware_1.verifyToken, authMiddleware_1.isBookingManager, bookingController_1.getOngoingBookings);
+router.get('/admin/completed-bookings', authMiddleware_1.verifyToken, authMiddleware_1.isBookingManager, bookingController_1.getCompletedBookings);
+router.get('/admin/new-bookings', authMiddleware_1.verifyToken, authMiddleware_1.isBookingManager, bookingController_1.getNewBookings);
 exports.default = router;

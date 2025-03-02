@@ -15,7 +15,7 @@ import {
     getNewBookings,
     getAllBookings
 } from '../../controllers/bookingController';
-import { isAdmin, isBookingManager, isSuperAdmin } from "../../middleware/authMiddleware";
+import {  isBookingManager, verifyToken } from "../../middleware/authMiddleware";
 
 const router = express.Router();
 
@@ -37,10 +37,11 @@ router.get('/summary/:bookingId', getBookingSummary);
 router.get('/', getAllBookings);
 
 // Admin booking management routes
-router.delete('/admin/:bookingId', isBookingManager, cancelBooking);
-router.get('/admin/ongoing-bookings', isBookingManager, getOngoingBookings);
-router.get('/admin/completed-bookings', isBookingManager, getCompletedBookings);
-router.get('/admin/new-bookings', isBookingManager, getNewBookings);
+router.delete('/admin/:bookingId', verifyToken, isBookingManager, cancelBooking);
+router.get('/admin/ongoing-bookings', verifyToken, isBookingManager, getOngoingBookings);
+router.get('/admin/completed-bookings', verifyToken, isBookingManager, getCompletedBookings);
+router.get('/admin/new-bookings', verifyToken, isBookingManager, getNewBookings);
+
 
 
 
