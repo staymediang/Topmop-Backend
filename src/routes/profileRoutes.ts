@@ -7,6 +7,10 @@ const router = express.Router();
 // Get user profile
 router.get("/", verifyToken, getUserProfile);
 
+// Get all users (super admin only)
+
+router.get("/list", verifyToken, isSuperAdmin, getAllUsers);
+
 router.get("/:id", verifyToken, getSingleUser);
 
 // Edit user profile
@@ -15,9 +19,7 @@ router.put("/edit", verifyToken, editUserProfile);
 // Update user role (super admin only)
 router.put("/role", verifyToken, isSuperAdmin, updateUserRole);
 
-// Get all users (super admin only)
 
-router.get("/all", verifyToken, isSuperAdmin, getAllUsers);
 
 // Delete user (super admin only)
 
