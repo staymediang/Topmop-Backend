@@ -10,16 +10,14 @@ const path_1 = __importDefault(require("path"));
 const User_1 = require("../models/User");
 const createService = async (req, res) => {
     const { title, description, optional, price } = req.body;
-    const imageUrl = req.file ? path_1.default.join("uploads", req.file.filename) : null;
+    const imageUrl = req.file ? path_1.default.join("src/uploads", req.file.filename) : null;
     try {
         const service = new Service_1.Service();
         service.title = title;
         service.description = description;
-        service.imageUrl = imageUrl;
-        // Set optional and price fields
+        service.imageUrl = imageUrl; // Ensure correct file path is stored
         service.optional = optional; // Assume optional is a JSON string or an array
         service.price = typeof price === "string" ? JSON.parse(price) : price; // Parse if sent as a string
-        // Fetch the user by ID to set the createdBy field
         const userRepo = database_1.AppDataSource.getRepository(User_1.User);
         const userId = req.user?.userId;
         if (!userId) {

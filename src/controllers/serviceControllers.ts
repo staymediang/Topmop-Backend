@@ -6,19 +6,17 @@ import { User } from "../models/User";
 
 export const createService = async (req: Request, res: Response) => {
   const { title, description, optional, price } = req.body;
-  const imageUrl = req.file ? path.join("uploads", req.file.filename) : null;
+  const imageUrl = req.file ? path.join("src/uploads", req.file.filename) : null;
 
   try {
     const service = new Service();
     service.title = title;
     service.description = description;
-    service.imageUrl = imageUrl;
+    service.imageUrl = imageUrl; // Ensure correct file path is stored
 
-    // Set optional and price fields
     service.optional = optional; // Assume optional is a JSON string or an array
     service.price = typeof price === "string" ? JSON.parse(price) : price; // Parse if sent as a string
 
-    // Fetch the user by ID to set the createdBy field
     const userRepo = AppDataSource.getRepository(User);
     const userId = req.user?.userId;
 
