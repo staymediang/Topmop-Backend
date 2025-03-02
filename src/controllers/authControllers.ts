@@ -34,7 +34,7 @@ export const signup = async (req: Request, res: Response): Promise<Response> => 
     user.password = hashedPassword;
 
     // Assign the super admin role if the email matches
-    user.role = (email.toLowerCase() === superAdminEmail.toLowerCase()) ? "superadmin" : (role || "user");
+    user.role = (email.toLowerCase() === superAdminEmail.toLowerCase()) ? "super admin" : (role || "user");
 
     
     await AppDataSource.getRepository(User).save(user);

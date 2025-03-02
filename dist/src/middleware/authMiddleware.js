@@ -31,7 +31,8 @@ const isAdmin = (req, res, next) => {
 exports.isAdmin = isAdmin;
 // Middleware to check if user is a super admin
 const isSuperAdmin = (req, res, next) => {
-    if (req.user?.role.toLowerCase() !== "super admin".toLowerCase()) {
+    if (req.user?.role?.toLowerCase() !== "super admin") {
+        console.log("User Role in Middleware:", req.user?.role);
         return res.status(403).json({ message: "Access restricted to super admin only" });
     }
     next();

@@ -32,7 +32,7 @@ const signup = async (req, res) => {
         user.email = email;
         user.password = hashedPassword;
         // Assign the super admin role if the email matches
-        user.role = (email.toLowerCase() === superAdminEmail) ? "super admin" : (role || "user");
+        user.role = (email.toLowerCase() === superAdminEmail.toLowerCase()) ? "super admin" : (role || "user");
         await database_1.AppDataSource.getRepository(User_1.User).save(user);
         return res.status(201).json({ message: "User registered successfully" });
     }
@@ -68,7 +68,7 @@ const transporter = nodemailer_1.default.createTransport({
     secure: true, // Use SSL/TLS
     auth: {
         user: process.env.EMAIL, // Your Hostinger email address
-        pass: process.env.EMAIL_PASSWORD, // Your Hostinger email password
+        pass: process.env.EMAIL_PASSWORD,
     },
 });
 // Send Reset Password Link
