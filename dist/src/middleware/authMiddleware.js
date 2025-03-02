@@ -7,23 +7,27 @@ exports.isBookingManager = exports.isSuperAdmin = exports.isAdmin = exports.veri
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 // Middleware to verify token
 const verifyToken = (req, res, next) => {
-    const token = req.headers["authorization"]?.split(" ")[1];
-    if (!token)
-        return res.status(401).json({ message: "Access denied" });
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) {
+        return res.status(401).json({ message: "Access denied. No token provided." });
+    }
     try {
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
-        console.log("Decoded token role:", decoded.role);
-        req.user = decoded;
+        // Normalize role to lowercase for consistency
+        req.user = {
+            userId: decoded.userId,
+            role: decoded.role.trim().toLowerCase(),
+        };
         next();
     }
     catch (error) {
-        res.status(400).json({ message: "Invalid token" });
+        return res.status(401).json({ message: "Invalid or expired token" });
     }
 };
 exports.verifyToken = verifyToken;
 // Middleware to check if user is an admin
 const isAdmin = (req, res, next) => {
-    if (req.user?.role?.toLowerCase() !== "admin" && req.user?.role?.toLowerCase() !== "super admin") {
+    if (!req.user || !["admin", "super admin"].includes(req.user.role)) {
         return res.status(403).json({ message: "Access restricted to admin only" });
     }
     next();
@@ -31,17 +35,15 @@ const isAdmin = (req, res, next) => {
 exports.isAdmin = isAdmin;
 // Middleware to check if user is a super admin
 const isSuperAdmin = (req, res, next) => {
-    if (req.user?.role?.toLowerCase() !== "super admin") {
-        console.log("User Role in Middleware:", req.user?.role);
+    if (!req.user || req.user.role !== "super admin") {
         return res.status(403).json({ message: "Access restricted to super admin only" });
     }
     next();
 };
 exports.isSuperAdmin = isSuperAdmin;
+// Middleware to check if user is a booking manager or super admin
 const isBookingManager = (req, res, next) => {
-    const userRole = req.user?.role?.trim().toLowerCase(); // 🔹 Normalize role here
-    console.log("User Role in Middleware:", userRole); // 🔴 DEBUGGING LOG
-    if (userRole !== "booking_manager" && userRole !== "super admin") {
+    if (!req.user || !["booking_manager", "super admin"].includes(req.user.role)) {
         return res.status(403).json({ message: "Access restricted to booking manager or super admin only" });
     }
     next();
