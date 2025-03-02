@@ -49,7 +49,6 @@ export const signup = async (req: Request, res: Response): Promise<Response> => 
 export const login = async (req: Request, res: Response): Promise<Response> => {
   const { email, password } = req.body;
 
-
   try {
     const user = await AppDataSource.getRepository(User).findOneBy({ email });
     if (!user) return res.status(400).json({ message: "Invalid email or password" });
@@ -57,15 +56,21 @@ export const login = async (req: Request, res: Response): Promise<Response> => {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) return res.status(400).json({ message: "Invalid email or password" });
 
-    const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET!, {
-      expiresIn: "1h",
-    });
+    // 🔹 Normalize role before issuing a token
+    const normalizedRole = user.role.trim().toLowerCase();
+
+    const token = jwt.sign(
+      { userId: user.id, role: normalizedRole },
+      process.env.JWT_SECRET!,
+      { expiresIn: "1h" }
+    );
 
     return res.status(200).json({ message: "Login successful", token });
   } catch (error) {
     return res.status(500).json({ message: "Login failed", error });
   }
 };
+
 
 /// Configure the transporter for sending emails
 const transporter = nodemailer.createTransport({

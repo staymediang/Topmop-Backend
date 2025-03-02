@@ -12,7 +12,7 @@ const verifyToken = (req, res, next) => {
         return res.status(401).json({ message: "Access denied" });
     try {
         const decoded = jsonwebtoken_1.default.verify(token, process.env.JWT_SECRET);
-        console.log("Decoded token:", decoded);
+        console.log("Decoded token role:", decoded.role);
         req.user = decoded;
         next();
     }
@@ -39,7 +39,8 @@ const isSuperAdmin = (req, res, next) => {
 };
 exports.isSuperAdmin = isSuperAdmin;
 const isBookingManager = (req, res, next) => {
-    const userRole = req.user?.role?.toLowerCase();
+    const userRole = req.user?.role?.trim().toLowerCase(); // 🔹 Normalize role here
+    console.log("User Role in Middleware:", userRole); // 🔴 DEBUGGING LOG
     if (userRole !== "booking_manager" && userRole !== "super admin") {
         return res.status(403).json({ message: "Access restricted to booking manager or super admin only" });
     }

@@ -51,9 +51,9 @@ const login = async (req, res) => {
         const isPasswordValid = await bcryptjs_1.default.compare(password, user.password);
         if (!isPasswordValid)
             return res.status(400).json({ message: "Invalid email or password" });
-        const token = jsonwebtoken_1.default.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET, {
-            expiresIn: "1h",
-        });
+        // 🔹 Normalize role before issuing a token
+        const normalizedRole = user.role.trim().toLowerCase();
+        const token = jsonwebtoken_1.default.sign({ userId: user.id, role: normalizedRole }, process.env.JWT_SECRET, { expiresIn: "1h" });
         return res.status(200).json({ message: "Login successful", token });
     }
     catch (error) {

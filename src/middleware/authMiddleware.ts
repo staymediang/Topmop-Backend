@@ -12,7 +12,7 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
       userId: string; // Change this to string
       role: "user" | "admin" | "super admin" | "booking_manager";
     };
-    console.log("Decoded token:", decoded);
+    console.log("Decoded token role:", decoded.role);
     req.user = decoded;
     next();
   } catch (error) {
@@ -40,12 +40,16 @@ export const isSuperAdmin = (req: Request, res: Response, next: NextFunction) =>
 
 
 export const isBookingManager = (req: Request, res: Response, next: NextFunction) => {
-  const userRole = req.user?.role?.toLowerCase();
+  const userRole = req.user?.role?.trim().toLowerCase(); // 🔹 Normalize role here
 
+  console.log("User Role in Middleware:", userRole);  // 🔴 DEBUGGING LOG
+  
   if (userRole !== "booking_manager" && userRole !== "super admin") {
     return res.status(403).json({ message: "Access restricted to booking manager or super admin only" });
   }
 
   next();
 };
+
+
 
