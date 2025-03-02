@@ -31,11 +31,13 @@ export const isAdmin = (req: Request, res: Response, next: NextFunction) => {
 
 // Middleware to check if user is a super admin
 export const isSuperAdmin = (req: Request, res: Response, next: NextFunction) => {
-  if (req.user?.role.toLowerCase() !== "super admin".toLowerCase()) {
+  if (req.user?.role?.toLowerCase() !== "superadmin") {
+    console.log("User Role in Middleware:", req.user?.role);
     return res.status(403).json({ message: "Access restricted to super admin only" });
   }
   next();
 };
+
 
 export const isBookingManager = (req: Request, res: Response, next: NextFunction) => {
   const userRole = req.user?.role?.toLowerCase();

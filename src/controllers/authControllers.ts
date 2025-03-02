@@ -34,7 +34,8 @@ export const signup = async (req: Request, res: Response): Promise<Response> => 
     user.password = hashedPassword;
 
     // Assign the super admin role if the email matches
-    user.role = (email.toLowerCase() === superAdminEmail) ? "super admin" : (role || "user");
+    user.role = (email.toLowerCase() === superAdminEmail.toLowerCase()) ? "superadmin" : (role || "user");
+
     
     await AppDataSource.getRepository(User).save(user);
 
@@ -47,6 +48,7 @@ export const signup = async (req: Request, res: Response): Promise<Response> => 
 // Login
 export const login = async (req: Request, res: Response): Promise<Response> => {
   const { email, password } = req.body;
+
 
   try {
     const user = await AppDataSource.getRepository(User).findOneBy({ email });
@@ -72,7 +74,7 @@ const transporter = nodemailer.createTransport({
   secure: true, // Use SSL/TLS
   auth: {
     user: process.env.EMAIL, // Your Hostinger email address
-    pass: process.env.EMAIL_PASSWORD, // Your Hostinger email password
+    pass: process.env.EMAIL_PASSWORD,
   },
 });
 
