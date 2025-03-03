@@ -75,7 +75,7 @@ __decorate([
     __metadata("design:type", String)
 ], Booking.prototype, "paymentStatus", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ type: 'varchar', length: 20, default: 'paystack' }) // paystack, cash, card
+    (0, typeorm_1.Column)({ type: 'varchar', length: 20, default: 'stripe' }) // stripe, cash, card
     ,
     __metadata("design:type", String)
 ], Booking.prototype, "paymentType", void 0);

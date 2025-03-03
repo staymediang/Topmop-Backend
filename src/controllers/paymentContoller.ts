@@ -1,13 +1,14 @@
-import axios from 'axios';
+import Stripe from 'stripe';
 import { Request, Response } from 'express';
 import { AppDataSource } from '../config/database';
 import { Booking } from '../models/Booking';
 
-const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY as string;
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY as string;
+const stripe = new Stripe(STRIPE_SECRET_KEY,);
 
-// 🔹 Initiate Paystack Payment
+// 🔹 Initiate Stripe Payment
 export const initiatePayment = async (req: Request, res: Response) => {
-    const { bookingId, email, amount } = req.body;
+    const { bookingId, email, amount, currency } = req.body;
 
     try {
         const bookingRepo = AppDataSource.getRepository(Booking);
@@ -17,80 +18,84 @@ export const initiatePayment = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'Booking not found' });
         }
 
-        if (!email || !amount) {
-            return res.status(400).json({ message: 'Email and amount are required' });
+        if (!email || !amount || !currency) {
+            return res.status(400).json({ message: 'Email, amount, and currency are required' });
         }
 
-        // Convert amount to kobo (Paystack requires amount in kobo)
-        const amountInKobo = amount * 100;
+        // Ensure currency is in lowercase (Stripe requires lowercase)
+        const formattedCurrency = currency.toLowerCase();
 
-        // Call Paystack API to initialize payment
-        const response = await axios.post(
-            'https://api.paystack.co/transaction/initialize',
-            {
-                email,
-                amount: amountInKobo,
-                reference: `BOOKING-${bookingId}-${Date.now()}`,
-                callback_url: `https://api.topmopcleaningsolutions.co.uk/payment/callback`,
-            },
-            {
-                headers: {
-                    Authorization: `Bearer ${PAYSTACK_SECRET_KEY}`,
-                    'Content-Type': 'application/json',
-                },
-            }
-        );
+        // Create a Stripe PaymentIntent
+        const paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round(amount * 100), // Convert to cents
+            currency: formattedCurrency,
+            payment_method_types: ['card'],
+            metadata: { bookingId: bookingId.toString(), email },
+        });
 
-        if (response.data.status) {
-            // Save the payment reference in the booking record
-            booking.paymentReference = response.data.data.reference;
-            booking.paymentStatus = 'pending'; // Payment is pending
-            await bookingRepo.save(booking);
+        // Save the payment intent ID in the booking record
+        booking.paymentReference = paymentIntent.id;
+        booking.paymentStatus = 'pending';
+        await bookingRepo.save(booking);
 
-            return res.status(200).json({
-                message: 'Payment link generated',
-                paymentUrl: response.data.data.authorization_url,
-            });
-        } else {
-            throw new Error('Paystack initialization failed');
-        }
+        res.status(200).json({
+            message: 'Payment initiated',
+            clientSecret: paymentIntent.client_secret, // Needed for frontend
+        });
+
     } catch (error) {
         console.error('Error initiating payment:', error);
         res.status(500).json({ message: 'Error initiating payment', error: error.message });
     }
 };
 
-// 🔹 Verify Paystack Payment (Webhook)
 export const verifyPayment = async (req: Request, res: Response) => {
-    const { event, data } = req.body;
+    const sig = req.headers['stripe-signature'] as string;
+    const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET as string;
 
+    let event;
     try {
-        if (event === 'charge.success') {
-            const { reference, amount, customer } = data;
-            const bookingRepo = AppDataSource.getRepository(Booking);
+        event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
+    } catch (err) {
+        console.error('Webhook signature verification failed:', err.message);
+        return res.status(400).json({ message: `Webhook error: ${err.message}` });
+    }
 
-            // Find booking by reference
-            const booking = await bookingRepo.findOne({ where: { paymentReference: reference } });
+    const bookingRepo = AppDataSource.getRepository(Booking);
 
-            if (!booking) {
-                return res.status(404).json({ message: 'Booking not found for this transaction' });
-            }
+    if (event.type === 'payment_intent.succeeded') {
+        const paymentIntent = event.data.object;
 
-            // Confirm amount
-            if (booking.amount * 100 !== amount) {
-                return res.status(400).json({ message: 'Payment amount mismatch' });
-            }
+        const booking = await bookingRepo.findOne({ where: { paymentReference: paymentIntent.id } });
 
-            // Mark booking as paid
-            booking.paymentStatus = 'paid';
-            await bookingRepo.save(booking);
-
-            return res.status(200).json({ message: 'Payment verified successfully' });
+        if (!booking) {
+            console.warn(`Booking not found for paymentReference: ${paymentIntent.id}`);
+            return res.status(404).json({ message: 'Booking not found for this transaction' });
         }
 
-        res.status(400).json({ message: 'Unhandled event type' });
-    } catch (error) {
-        console.error('Error verifying payment:', error);
-        res.status(500).json({ message: 'Error verifying payment', error: error.message });
+        // Mark booking as paid
+        booking.paymentStatus = 'paid';
+        await bookingRepo.save(booking);
+
+        console.log(`Payment verified for booking: ${booking.id}`);
+
+        return res.status(200).json({ message: 'Payment verified successfully' });
     }
+
+    if (event.type === 'payment_intent.payment_failed') {
+        const paymentIntent = event.data.object;
+
+        const booking = await bookingRepo.findOne({ where: { paymentReference: paymentIntent.id } });
+
+        if (booking) {
+            booking.paymentStatus = 'failed';
+            await bookingRepo.save(booking);
+        }
+
+        console.error(`Payment failed for booking: ${booking?.id || 'Unknown'}`);
+        return res.status(400).json({ message: 'Payment failed' });
+    }
+
+    console.warn(`Unhandled event type: ${event.type}`);
+    res.status(400).json({ message: 'Unhandled event type' });
 };

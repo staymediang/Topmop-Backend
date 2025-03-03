@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteService = exports.updateService = exports.getAllServices = exports.createService = void 0;
+exports.getServiceById = exports.deleteService = exports.updateService = exports.getAllServices = exports.createService = void 0;
 const database_1 = require("../config/database");
 const Service_1 = require("../models/Service");
 const path_1 = __importDefault(require("path"));
@@ -85,3 +85,17 @@ const deleteService = async (req, res) => {
     }
 };
 exports.deleteService = deleteService;
+// Get a single service by ID
+const getServiceById = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const service = await database_1.AppDataSource.getRepository(Service_1.Service).findOneBy({ id: parseInt(id) });
+        if (!service)
+            return res.status(404).json({ message: "Service not found" });
+        res.status(200).json(service);
+    }
+    catch (error) {
+        res.status(500).json({ message: "Failed to retrieve service", error });
+    }
+};
+exports.getServiceById = getServiceById;

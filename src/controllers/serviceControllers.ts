@@ -86,3 +86,19 @@ export const deleteService = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Failed to delete service", error });
   }
 };
+
+// Get a single service by ID
+export const getServiceById = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  try {
+    const service = await AppDataSource.getRepository(Service).findOneBy({ id: parseInt(id) });
+
+    if (!service) return res.status(404).json({ message: "Service not found" });
+
+    res.status(200).json(service);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to retrieve service", error });
+  }
+};
+

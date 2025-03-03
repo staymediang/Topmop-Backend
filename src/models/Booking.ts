@@ -50,13 +50,14 @@ export class Booking {
     cleaningStartDate: Date;
 
     @Column({ type: 'varchar', length: 100, nullable: true })
-    paymentReference: string; // Paystack transaction reference
-
+    paymentReference: string | null; // Can be null for cash payments
+    
     @Column({ type: 'varchar', length: 20, default: 'pending' }) // pending, paid, failed
     paymentStatus: string;
-
-    @Column({ type: 'varchar', length: 20, default: 'paystack' }) // paystack, cash, card
+    
+    @Column({ type: 'varchar', length: 20, default: 'stripe' }) // stripe, cash, card
     paymentType: string;
+    
 
     @Column({ type: 'boolean', default: false })
     needsIroning: boolean;
