@@ -53,6 +53,11 @@ export const verifyPayment = async (req: Request, res: Response) => {
     const sig = req.headers['stripe-signature'] as string;
     const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET as string;
 
+    if (!STRIPE_WEBHOOK_SECRET) {
+        console.error("Missing STRIPE_WEBHOOK_SECRET in environment variables.");
+        return res.status(500).json({ message: "Internal server error" });
+    }
+
     let event;
     try {
         event = stripe.webhooks.constructEvent(req.body, sig, STRIPE_WEBHOOK_SECRET);
@@ -61,41 +66,31 @@ export const verifyPayment = async (req: Request, res: Response) => {
         return res.status(400).json({ message: `Webhook error: ${err.message}` });
     }
 
+    const paymentIntent = event.data.object;
     const bookingRepo = AppDataSource.getRepository(Booking);
+    const booking = await bookingRepo.findOne({ where: { paymentReference: paymentIntent.id } });
 
-    if (event.type === 'payment_intent.succeeded') {
-        const paymentIntent = event.data.object;
-
-        const booking = await bookingRepo.findOne({ where: { paymentReference: paymentIntent.id } });
-
-        if (!booking) {
-            console.warn(`Booking not found for paymentReference: ${paymentIntent.id}`);
-            return res.status(404).json({ message: 'Booking not found for this transaction' });
-        }
-
-        // Mark booking as paid
-        booking.paymentStatus = 'paid';
-        await bookingRepo.save(booking);
-
-        console.log(`Payment verified for booking: ${booking.id}`);
-
-        return res.status(200).json({ message: 'Payment verified successfully' });
+    if (!booking) {
+        console.warn(`Booking not found for paymentReference: ${paymentIntent.id}`);
+        return res.status(404).json({ message: 'Booking not found for this transaction' });
     }
 
-    if (event.type === 'payment_intent.payment_failed') {
-        const paymentIntent = event.data.object;
+    switch (event.type) {
+        case 'payment_intent.succeeded':
+            booking.paymentStatus = 'paid';
+            console.log(`✅ Payment verified for booking: ${booking.id}`);
+            break;
 
-        const booking = await bookingRepo.findOne({ where: { paymentReference: paymentIntent.id } });
-
-        if (booking) {
+        case 'payment_intent.payment_failed':
             booking.paymentStatus = 'failed';
-            await bookingRepo.save(booking);
-        }
+            console.error(`❌ Payment failed for booking: ${booking.id}`);
+            break;
 
-        console.error(`Payment failed for booking: ${booking?.id || 'Unknown'}`);
-        return res.status(400).json({ message: 'Payment failed' });
+        default:
+            console.warn(`Unhandled event type: ${event.type}`);
+            return res.status(400).json({ message: 'Unhandled event type' });
     }
 
-    console.warn(`Unhandled event type: ${event.type}`);
-    res.status(400).json({ message: 'Unhandled event type' });
+    await bookingRepo.save(booking);
+    return res.status(200).json({ message: 'Webhook processed' });
 };
