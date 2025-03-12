@@ -7,7 +7,10 @@ const multer_1 = __importDefault(require("multer"));
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 // Define absolute path for uploads
-const uploadDir = path_1.default.join(__dirname, "..", "uploads");
+const uploadDir = path_1.default.join(process.cwd(), "uploads"); // Fix directory issue
+if (!fs_1.default.existsSync(uploadDir)) {
+    fs_1.default.mkdirSync(uploadDir, { recursive: true });
+}
 // Ensure the uploads folder exists
 if (!fs_1.default.existsSync(uploadDir)) {
     fs_1.default.mkdirSync(uploadDir, { recursive: true });

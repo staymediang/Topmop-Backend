@@ -3,7 +3,12 @@ import path from "path";
 import fs from "fs";
 
 // Define absolute path for uploads
-const uploadDir = path.join(__dirname, "..", "uploads");
+const uploadDir = path.join(process.cwd(), "uploads"); // Fix directory issue
+
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 
 // Ensure the uploads folder exists
 if (!fs.existsSync(uploadDir)) {
