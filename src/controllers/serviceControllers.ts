@@ -42,11 +42,22 @@ export const createService = async (req: Request, res: Response) => {
 export const getAllServices = async (_req: Request, res: Response) => {
   try {
     const services = await AppDataSource.getRepository(Service).find();
-    res.status(200).json(services);
+
+    if (!services.length) return res.status(404).json({ message: "No services found" });
+
+    // Append base URL to each service's imageUrl
+    const BASE_URL = "https://api.topmopcleaningsolutions.co.uk";
+    const updatedServices = services.map(service => ({
+      ...service,
+      imageUrl: service.imageUrl ? `${BASE_URL}${service.imageUrl}` : null,
+    }));
+
+    res.status(200).json(updatedServices);
   } catch (error) {
     res.status(500).json({ message: "Failed to retrieve services", error });
   }
 };
+
 
 // Update a service
 export const updateService = async (req: Request, res: Response) => {
@@ -97,9 +108,16 @@ export const getServiceById = async (req: Request, res: Response) => {
 
     if (!service) return res.status(404).json({ message: "Service not found" });
 
+    // Append base URL to imageUrl
+    const BASE_URL = "https://api.topmopcleaningsolutions.co.uk";
+    if (service.imageUrl) {
+      service.imageUrl = `${BASE_URL}${service.imageUrl}`;
+    }
+
     res.status(200).json(service);
   } catch (error) {
     res.status(500).json({ message: "Failed to retrieve service", error });
   }
 };
+
 
