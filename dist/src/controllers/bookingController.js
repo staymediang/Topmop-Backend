@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllBookings = exports.getNewBookings = exports.getCompletedBookings = exports.getOngoingBookings = exports.cancelBooking = exports.getBookingSummary = exports.getUpcomingBookings = exports.getBookingHistory = exports.getBookingDetails = exports.updateProfile = exports.getProfile = exports.setPersonalDetails = exports.setRequirements = exports.setFrequency = void 0;
+exports.getAllBookings = exports.getNewBookings = exports.getCompletedBookings = exports.getOngoingBookings = exports.cancelBooking = exports.getBookingSummary = exports.getUpcomingBookings = exports.getUserBookingHistory = exports.getBookingDetails = exports.updateProfile = exports.getProfile = exports.setPersonalDetails = exports.setRequirements = exports.setFrequency = void 0;
 const Booking_1 = require("../models/Booking");
 const database_1 = require("../config/database");
 const User_1 = require("../models/User");
@@ -204,30 +204,30 @@ const getBookingDetails = async (req, res) => {
     }
 };
 exports.getBookingDetails = getBookingDetails;
-const getBookingHistory = async (req, res) => {
-    const userId = req.user?.userId?.toString();
-    const { year, month } = req.query;
+const getUserBookingHistory = async (req, res) => {
+    const userId = req.user?.userId?.toString(); // Extract user ID from authenticated request
+    if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+    }
     try {
         const bookingRepo = database_1.AppDataSource.getRepository(Booking_1.Booking);
-        const queryOptions = {
+        // Fetch all bookings for this user
+        const bookings = await bookingRepo.find({
             where: { user: { id: userId } },
-            relations: ['user'],
-        };
-        if (year && month) {
-            const startDate = new Date(Number(year), Number(month) - 1, 1);
-            const endDate = new Date(Number(year), Number(month), 0, 23, 59, 59);
-            queryOptions.where.createdAt = (0, typeorm_1.MoreThanOrEqual)(startDate);
-            queryOptions.where.createdAt = (0, typeorm_1.LessThanOrEqual)(endDate);
+            order: { createdAt: "DESC" }, // Sort by latest bookings first
+            relations: ["user"], // Include user details
+        });
+        if (bookings.length === 0) {
+            return res.status(404).json({ message: "No booking history found for this user" });
         }
-        const bookings = await bookingRepo.find(queryOptions);
         res.status(200).json({ bookings });
     }
     catch (error) {
-        console.error("Error fetching booking history:", error);
-        res.status(500).json({ message: 'Error fetching booking history', error: error.message });
+        console.error("Error fetching user booking history:", error);
+        res.status(500).json({ message: "Error fetching booking history", error: error.message });
     }
 };
-exports.getBookingHistory = getBookingHistory;
+exports.getUserBookingHistory = getUserBookingHistory;
 const getUpcomingBookings = async (req, res) => {
     const userId = req.user?.userId?.toString(); // Ensure it's a string
     try {

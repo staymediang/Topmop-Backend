@@ -10,7 +10,7 @@ const path_1 = __importDefault(require("path"));
 const User_1 = require("../models/User");
 const createService = async (req, res) => {
     const { title, description, optional, price } = req.body;
-    const imageUrl = req.file ? path_1.default.join("src/uploads", req.file.filename) : null;
+    const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
     try {
         const service = new Service_1.Service();
         service.title = title;

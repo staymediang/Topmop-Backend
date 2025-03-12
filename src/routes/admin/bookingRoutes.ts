@@ -6,7 +6,7 @@ import {
     getProfile,
     updateProfile,
     getBookingDetails,
-    getBookingHistory,
+    getUserBookingHistory,
     getUpcomingBookings,
     getBookingSummary,
     cancelBooking,
@@ -30,7 +30,7 @@ router.get('/profile', getProfile);
 router.put('/profile', updateProfile);
 
 // Booking details routes
-router.get('/history', getBookingHistory);
+router.get('/history', getUserBookingHistory);
 router.get('/upcoming', getUpcomingBookings);
 router.get('/:bookingId', getBookingDetails);
 router.get('/summary/:bookingId', getBookingSummary);

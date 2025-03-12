@@ -240,35 +240,33 @@ export const getBookingDetails = async (req: Request, res: Response) => {
     }
 };
 
-export const getBookingHistory = async (req: Request, res: Response) => {
-    const userId = req.user?.userId?.toString();
-    const { year, month } = req.query;
+export const getUserBookingHistory = async (req: Request, res: Response) => {
+    const userId = req.user?.userId?.toString(); // Extract user ID from authenticated request
+
+    if (!userId) {
+        return res.status(400).json({ message: "User ID is required" });
+    }
 
     try {
         const bookingRepo = AppDataSource.getRepository(Booking);
-
-        const queryOptions: any = {
-            where: { user: { id: userId } },
-            relations: ['user'],
-        };
-
-        if (year && month) {
-            const startDate = new Date(Number(year), Number(month) - 1, 1);
-            const endDate = new Date(Number(year), Number(month), 0, 23, 59, 59);
         
-            queryOptions.where.createdAt = MoreThanOrEqual(startDate);
-            queryOptions.where.createdAt = LessThanOrEqual(endDate);
-        }
+        // Fetch all bookings for this user
+        const bookings = await bookingRepo.find({
+            where: { user: { id: userId } },
+            order: { createdAt: "DESC" }, // Sort by latest bookings first
+            relations: ["user"], // Include user details
+        });
 
-        const bookings = await bookingRepo.find(queryOptions);
+        if (bookings.length === 0) {
+            return res.status(404).json({ message: "No booking history found for this user" });
+        }
 
         res.status(200).json({ bookings });
     } catch (error) {
-        console.error("Error fetching booking history:", error);
-        res.status(500).json({ message: 'Error fetching booking history', error: error.message });
+        console.error("Error fetching user booking history:", error);
+        res.status(500).json({ message: "Error fetching booking history", error: error.message });
     }
 };
-
 
 export const getUpcomingBookings = async (req: Request, res: Response) => {
     const userId = req.user?.userId?.toString(); // Ensure it's a string

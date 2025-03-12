@@ -6,7 +6,8 @@ import { User } from "../models/User";
 
 export const createService = async (req: Request, res: Response) => {
   const { title, description, optional, price } = req.body;
-  const imageUrl = req.file ? path.join("src/uploads", req.file.filename) : null;
+  const imageUrl = req.file ? `/uploads/${req.file.filename}` : null;
+
 
   try {
     const service = new Service();
