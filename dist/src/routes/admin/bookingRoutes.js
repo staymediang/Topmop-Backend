@@ -15,7 +15,7 @@ router.post('/personal-details', bookingController_1.setPersonalDetails);
 router.get('/profile', bookingController_1.getProfile);
 router.put('/profile', bookingController_1.updateProfile);
 // Booking details routes
-router.get('/history', bookingController_1.getUserBookingHistory);
+router.get("/history/user", authMiddleware_1.verifyToken, bookingController_1.getUserBookingHistory);
 router.get('/upcoming', bookingController_1.getUpcomingBookings);
 router.get('/:bookingId', bookingController_1.getBookingDetails);
 router.get('/summary/:bookingId', bookingController_1.getBookingSummary);

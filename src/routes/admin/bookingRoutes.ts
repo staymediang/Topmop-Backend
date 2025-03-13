@@ -30,7 +30,7 @@ router.get('/profile', getProfile);
 router.put('/profile', updateProfile);
 
 // Booking details routes
-router.get('/history', getUserBookingHistory);
+router.get("/history/user", verifyToken, getUserBookingHistory);
 router.get('/upcoming', getUpcomingBookings);
 router.get('/:bookingId', getBookingDetails);
 router.get('/summary/:bookingId', getBookingSummary);
