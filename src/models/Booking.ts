@@ -111,6 +111,27 @@ export class Booking {
         default: BookingStatus.NEW,
     })
     status: BookingStatus;
+    
+    @Column('varchar', { length: 20, nullable: true })
+accessType: string; // "give_keys" or "let_in"
+
+@Column('date', { nullable: true })
+cleaningDate: Date;
+
+@Column('varchar', { length: 10, nullable: true })
+cleaningTime: string;
+
+@Column('varchar', { length: 30, nullable: true })
+apartmentType: string; // studio, one-bedroom, etc.
+
+@Column('simple-json', { nullable: true })
+roomDetails: {
+    toilets: number;
+    kitchens: number;
+    livingRooms: number;
+    bedrooms: number;
+};
+
 
     @CreateDateColumn()
     createdAt: Date;

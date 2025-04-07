@@ -145,6 +145,26 @@ __decorate([
     __metadata("design:type", String)
 ], Booking.prototype, "status", void 0);
 __decorate([
+    (0, typeorm_1.Column)('varchar', { length: 20, nullable: true }),
+    __metadata("design:type", String)
+], Booking.prototype, "accessType", void 0);
+__decorate([
+    (0, typeorm_1.Column)('date', { nullable: true }),
+    __metadata("design:type", Date)
+], Booking.prototype, "cleaningDate", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { length: 10, nullable: true }),
+    __metadata("design:type", String)
+], Booking.prototype, "cleaningTime", void 0);
+__decorate([
+    (0, typeorm_1.Column)('varchar', { length: 30, nullable: true }),
+    __metadata("design:type", String)
+], Booking.prototype, "apartmentType", void 0);
+__decorate([
+    (0, typeorm_1.Column)('simple-json', { nullable: true }),
+    __metadata("design:type", Object)
+], Booking.prototype, "roomDetails", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)(),
     __metadata("design:type", Date)
 ], Booking.prototype, "createdAt", void 0);

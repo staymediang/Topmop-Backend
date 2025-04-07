@@ -7,8 +7,14 @@ import { Address } from '../models/Booking';
 
 
 
-export const setFrequency = async (req: Request, res: Response) => {
-    let { frequency, hoursRequired, preferredDay, preferredDays, preferredTime, userId } = req.body;
+export const setBookingPreferences = async (req: Request, res: Response) => {
+    const {
+        userId,
+        frequency,
+        accessType,
+        cleaningDate,
+        cleaningTime,
+    } = req.body;
 
     const queryRunner = AppDataSource.createQueryRunner();
     await queryRunner.connect();
@@ -16,74 +22,76 @@ export const setFrequency = async (req: Request, res: Response) => {
 
     try {
         const user = await queryRunner.manager.findOne(User, { where: { id: userId } });
-        if (!user) {
-            throw new Error('User not found');
-        }
+        if (!user) throw new Error('User not found');
 
         const booking = new Booking();
-        booking.frequency = frequency;
-
-        // Ensure hoursRequired is a number
-        booking.hoursRequired = Number(hoursRequired);
-
-        // Handle both "preferredDay" and "preferredDays"
-        if (Array.isArray(preferredDays)) {
-            booking.preferredDays = preferredDays;
-        } else if (Array.isArray(preferredDay)) {
-            booking.preferredDays = preferredDay;
-        } else {
-            throw new Error('Invalid format for preferred days');
-        }
-
-        if (!preferredTime || typeof preferredTime !== 'string') {
-            console.error('Invalid preferredTime:', preferredTime);
-            throw new Error('Invalid preferred time format. Expected a string.');
-        }
-        
-        console.log('Received preferredTime:', preferredTime);
-        console.log('Type of preferredTime:', typeof preferredTime);
-
-        booking.preferredTimes = preferredTime;
-
-        // Set default values for required fields
-        booking.firstName = '';
-        booking.lastName = '';
-        booking.contactNumber = '';
-        booking.email = '';
-
-        const address = new Address();
-        address.street = '';
-        address.number = '';
-        address.city = '';
-        address.postalCode = '';
-        booking.address = address;
-
-        booking.amount = 0.0;
         booking.user = user;
+        booking.frequency = frequency;
+        booking.accessType = accessType;
+        booking.cleaningDate = new Date(cleaningDate);
+        booking.cleaningTime = cleaningTime;
+
+        booking.amount = 0.0; // Default, to be calculated later
         booking.paymentType = 'pending';
+
+        // Default empty fields for now
+        booking.address = new Address();
+        booking.hoursRequired = 0;
 
         await queryRunner.manager.save(booking);
         await queryRunner.commitTransaction();
 
-        res.status(201).json({ message: 'Frequency set', bookingId: booking.id });
+        res.status(201).json({ message: 'Booking preferences set', bookingId: booking.id });
     } catch (error) {
         await queryRunner.rollbackTransaction();
-        console.error('Error details:', error);
-        res.status(500).json({ message: 'Error setting frequency', error: error.message });
+        res.status(500).json({ message: 'Failed to set preferences', error: error.message });
     } finally {
         await queryRunner.release();
     }
 };
 
 
+export const setApartmentDetails = async (req: Request, res: Response) => {
+    const { bookingId, apartmentType, toilets, kitchens, livingRooms, bedrooms } = req.body;
 
-export const setRequirements = async (req: Request, res: Response) => {
+    try {
+        const bookingRepo = AppDataSource.getRepository(Booking);
+        const booking = await bookingRepo.findOne({ where: { id: bookingId } });
+
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        booking.apartmentType = apartmentType;
+        booking.roomDetails = {
+            toilets,
+            kitchens,
+            livingRooms,
+            bedrooms,
+        };
+
+        await bookingRepo.save(booking);
+        res.status(200).json({ message: 'Apartment details saved successfully' });
+
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to save apartment details', error: error.message });
+    }
+};
+
+
+
+export const setPersonalDetails = async (req: Request, res: Response) => {
     const {
         bookingId,
-        additionalInfo,         // String: Any additional information
-        dirtLevel,              // Enum: Light, Medium, Heavy
-        roomSelection,          // Array: Selected rooms (e.g., { room: 'Kitchen', count: 2 })
-        additionalServices      // Array: Selected additional services (e.g., { service: 'Laundry', count: 1 })
+        title,
+        firstName,
+        lastName,
+        contactNumber,
+        email,
+        city,
+        street,
+        number,
+        postalCode,
     } = req.body;
 
     try {
@@ -94,68 +102,27 @@ export const setRequirements = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'Booking not found' });
         }
 
-        // Update booking details
-        booking.additionalInfo = additionalInfo || null;         // Optional field
-        booking.dirtLevel = dirtLevel;                           // Validate against allowed values (Light, Medium, Heavy)
-        booking.roomSelection = roomSelection || [];             // Store selected rooms
-        booking.additionalServices = additionalServices || [];   // Store selected additional services
-
-        await bookingRepo.save(booking);
-        res.status(200).json({
-            message: 'Requirements set successfully',
-            bookingId: booking.id,
-            summary: {
-                additionalInfo: booking.additionalInfo,
-                dirtLevel: booking.dirtLevel,
-                roomSelection: booking.roomSelection,
-                additionalServices: booking.additionalServices,
-            }
-        });
-    } catch (error) {
-        console.error("Error setting requirements:", error);
-        res.status(500).json({ message: 'Error setting requirements', error: error.message });
-    }
-};
-
-
-
-export const setPersonalDetails = async (req: Request, res: Response) => {
-    const { bookingId, title, firstName, lastName, contactNumber, email, address } = req.body;
-
-    try {
-        const bookingRepo = AppDataSource.getRepository(Booking);
-        const booking = await bookingRepo.findOne({ where: { id: bookingId }, relations: ['address'] });
-
-        if (!booking) {
-            return res.status(404).json({ message: 'Booking not found' });
-        }
-
-        if (!title || !firstName || !lastName || !contactNumber || !email || !address || 
-            !address.street || !address.number || !address.city || !address.postalCode) {
-            return res.status(400).json({ message: 'All personal details are required' });
-        }
-
         booking.title = title;
         booking.firstName = firstName;
         booking.lastName = lastName;
         booking.contactNumber = contactNumber;
         booking.email = email;
 
-        if (!booking.address) {
-            booking.address = new Address();
-        }
-        booking.address.street = address.street;
-        booking.address.number = address.number;
-        booking.address.city = address.city;
-        booking.address.postalCode = address.postalCode;
+        booking.address = {
+            street,
+            number,
+            city,
+            postalCode,
+        };
 
         await bookingRepo.save(booking);
-        res.status(200).json({ message: 'Personal details updated successfully' });
+        res.status(200).json({ message: 'Personal details saved successfully' });
+
     } catch (error) {
-        console.error("Error updating personal details:", error);
-        res.status(500).json({ message: 'Error updating personal details', error: error.message });
+        res.status(500).json({ message: 'Failed to save personal details', error: error.message });
     }
 };
+
 
 
 

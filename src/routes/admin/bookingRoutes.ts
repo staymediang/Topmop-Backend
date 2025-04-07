@@ -1,7 +1,7 @@
 import express from 'express';
 import {
-    setFrequency,
-    setRequirements,
+    setBookingPreferences,
+    setApartmentDetails,
     setPersonalDetails,
     getProfile,
     updateProfile,
@@ -20,8 +20,8 @@ import {  isBookingManager, verifyToken } from "../../middleware/authMiddleware"
 const router = express.Router();
 
 // Define the routes for booking operations
-router.post('/frequency', setFrequency);
-router.post('/requirements', setRequirements);
+router.post('/frequency',  setBookingPreferences);
+router.post('/requirements', setApartmentDetails);
 router.post('/personal-details', setPersonalDetails);
 
 
@@ -41,8 +41,6 @@ router.delete('/admin/:bookingId', verifyToken, isBookingManager, cancelBooking)
 router.get('/admin/ongoing-bookings', verifyToken, isBookingManager, getOngoingBookings);
 router.get('/admin/completed-bookings', verifyToken, isBookingManager, getCompletedBookings);
 router.get('/admin/new-bookings', verifyToken, isBookingManager, getNewBookings);
-
-
 
 
 export default router;
