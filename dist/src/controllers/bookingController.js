@@ -214,15 +214,25 @@ const getBookingSummary = async (req, res) => {
         }
         res.status(200).json({
             frequency: booking.frequency,
-            hoursRequired: booking.hoursRequired,
-            preferredDay: booking.preferredDays,
-            preferredTime: booking.preferredTimes,
-            cleaningStartDate: booking.cleaningStartDate,
+            accessType: booking.accessType,
+            cleaningDate: booking.cleaningDate,
+            cleaningTime: booking.cleaningTime,
+            apartmentType: booking.apartmentType,
+            roomDetails: booking.roomDetails,
+            // Personal Info
+            title: booking.title,
+            firstName: booking.firstName,
+            lastName: booking.lastName,
+            contactNumber: booking.contactNumber,
+            email: booking.email,
+            address: booking.address,
+            // Others
             needsIroning: booking.needsIroning,
             accessInstructions: booking.accessInstructions,
             additionalInfo: booking.additionalInfo,
             referralSource: booking.referralSource,
             paymentType: booking.paymentType,
+            paymentStatus: booking.paymentStatus,
             amount: booking.amount,
             createdAt: booking.createdAt,
         });
