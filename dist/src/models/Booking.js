@@ -173,7 +173,7 @@ __decorate([
     __metadata("design:type", Date)
 ], Booking.prototype, "updatedAt", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => User_1.User, (user) => user.bookings, { nullable: false }),
+    (0, typeorm_1.ManyToOne)(() => User_1.User, (user) => user.bookings, { nullable: true }),
     __metadata("design:type", User_1.User)
 ], Booking.prototype, "user", void 0);
 exports.Booking = Booking = __decorate([

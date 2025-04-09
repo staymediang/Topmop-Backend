@@ -1,22 +1,29 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getAllBookings = exports.getNewBookings = exports.getCompletedBookings = exports.getOngoingBookings = exports.cancelBooking = exports.getBookingSummary = exports.getUpcomingBookings = exports.getUserBookingHistory = exports.getBookingDetails = exports.updateProfile = exports.getProfile = exports.setPersonalDetails = exports.setApartmentDetails = exports.setBookingPreferences = void 0;
+exports.getAllBookings = exports.getNewBookings = exports.getCompletedBookings = exports.getOngoingBookings = exports.cancelBooking = exports.getBookingSummary = exports.getUpcomingBookings = exports.getUserBookingHistory = exports.getBookingDetails = exports.updateProfile = exports.getProfile = exports.setApartmentDetails = exports.setBookingPreferences = void 0;
 const Booking_1 = require("../models/Booking");
 const database_1 = require("../config/database");
 const User_1 = require("../models/User");
 const typeorm_1 = require("typeorm");
 const Booking_2 = require("../models/Booking");
 const setBookingPreferences = async (req, res) => {
-    const { userId, frequency, accessType, cleaningDate, cleaningTime, } = req.body;
+    const { userId, // can be optional if user is authenticated
+    frequency, accessType, cleaningDate, cleaningTime, } = req.body;
     const queryRunner = database_1.AppDataSource.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
     try {
-        const user = await queryRunner.manager.findOne(User_1.User, { where: { id: userId } });
-        if (!user)
-            throw new Error('User not found');
         const booking = new Booking_1.Booking();
-        booking.user = user;
+        const userRepo = queryRunner.manager.getRepository(User_1.User);
+        if (!req.user?.userId) {
+            // Proceed as guest (no user linked)
+            booking.user = null; // Ensure DB allows nullable relation if you expect guests
+        }
+        else {
+            const user = await userRepo.findOne({ where: { id: req.user.userId } });
+            if (user)
+                booking.user = user;
+        }
         booking.frequency = frequency;
         booking.accessType = accessType;
         booking.cleaningDate = new Date(cleaningDate);
@@ -62,33 +69,6 @@ const setApartmentDetails = async (req, res) => {
     }
 };
 exports.setApartmentDetails = setApartmentDetails;
-const setPersonalDetails = async (req, res) => {
-    const { bookingId, title, firstName, lastName, contactNumber, email, city, street, number, postalCode, } = req.body;
-    try {
-        const bookingRepo = database_1.AppDataSource.getRepository(Booking_1.Booking);
-        const booking = await bookingRepo.findOne({ where: { id: bookingId } });
-        if (!booking) {
-            return res.status(404).json({ message: 'Booking not found' });
-        }
-        booking.title = title;
-        booking.firstName = firstName;
-        booking.lastName = lastName;
-        booking.contactNumber = contactNumber;
-        booking.email = email;
-        booking.address = {
-            street,
-            number,
-            city,
-            postalCode,
-        };
-        await bookingRepo.save(booking);
-        res.status(200).json({ message: 'Personal details saved successfully' });
-    }
-    catch (error) {
-        res.status(500).json({ message: 'Failed to save personal details', error: error.message });
-    }
-};
-exports.setPersonalDetails = setPersonalDetails;
 const getProfile = async (req, res) => {
     try {
         const userId = req.user?.userId; // Ensure this is treated as a string

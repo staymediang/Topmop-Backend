@@ -9,7 +9,7 @@ import { Address } from '../models/Booking';
 
 export const setBookingPreferences = async (req: Request, res: Response) => {
     const {
-        userId,
+        userId, // can be optional if user is authenticated
         frequency,
         accessType,
         cleaningDate,
@@ -21,11 +21,18 @@ export const setBookingPreferences = async (req: Request, res: Response) => {
     await queryRunner.startTransaction();
 
     try {
-        const user = await queryRunner.manager.findOne(User, { where: { id: userId } });
-        if (!user) throw new Error('User not found');
-
         const booking = new Booking();
-        booking.user = user;
+
+        const userRepo = queryRunner.manager.getRepository(User);
+
+        if (!req.user?.userId) {
+            // Proceed as guest (no user linked)
+            booking.user = null; // Ensure DB allows nullable relation if you expect guests
+        } else {
+            const user = await userRepo.findOne({ where: { id: req.user.userId } });
+            if (user) booking.user = user;
+        }
+
         booking.frequency = frequency;
         booking.accessType = accessType;
         booking.cleaningDate = new Date(cleaningDate);
@@ -49,6 +56,7 @@ export const setBookingPreferences = async (req: Request, res: Response) => {
         await queryRunner.release();
     }
 };
+
 
 
 export const setApartmentDetails = async (req: Request, res: Response) => {
@@ -77,53 +85,6 @@ export const setApartmentDetails = async (req: Request, res: Response) => {
         res.status(500).json({ message: 'Failed to save apartment details', error: error.message });
     }
 };
-
-
-
-export const setPersonalDetails = async (req: Request, res: Response) => {
-    const {
-        bookingId,
-        title,
-        firstName,
-        lastName,
-        contactNumber,
-        email,
-        city,
-        street,
-        number,
-        postalCode,
-    } = req.body;
-
-    try {
-        const bookingRepo = AppDataSource.getRepository(Booking);
-        const booking = await bookingRepo.findOne({ where: { id: bookingId } });
-
-        if (!booking) {
-            return res.status(404).json({ message: 'Booking not found' });
-        }
-
-        booking.title = title;
-        booking.firstName = firstName;
-        booking.lastName = lastName;
-        booking.contactNumber = contactNumber;
-        booking.email = email;
-
-        booking.address = {
-            street,
-            number,
-            city,
-            postalCode,
-        };
-
-        await bookingRepo.save(booking);
-        res.status(200).json({ message: 'Personal details saved successfully' });
-
-    } catch (error) {
-        res.status(500).json({ message: 'Failed to save personal details', error: error.message });
-    }
-};
-
-
 
 
 export const getProfile = async (req: Request, res: Response) => {

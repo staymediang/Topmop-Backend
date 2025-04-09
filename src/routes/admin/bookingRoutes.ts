@@ -2,7 +2,6 @@ import express from 'express';
 import {
     setBookingPreferences,
     setApartmentDetails,
-    setPersonalDetails,
     getProfile,
     updateProfile,
     getBookingDetails,
@@ -22,7 +21,7 @@ const router = express.Router();
 // Define the routes for booking operations
 router.post('/frequency',  setBookingPreferences);
 router.post('/requirements', setApartmentDetails);
-router.post('/personal-details', setPersonalDetails);
+
 
 
 // User profile related routes

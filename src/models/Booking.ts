@@ -111,7 +111,7 @@ export class Booking {
         default: BookingStatus.NEW,
     })
     status: BookingStatus;
-    
+
     @Column('varchar', { length: 20, nullable: true })
 accessType: string; // "give_keys" or "let_in"
 
@@ -120,6 +120,7 @@ cleaningDate: Date;
 
 @Column('varchar', { length: 10, nullable: true })
 cleaningTime: string;
+
 
 @Column('varchar', { length: 30, nullable: true })
 apartmentType: string; // studio, one-bedroom, etc.
@@ -139,6 +140,7 @@ roomDetails: {
     @UpdateDateColumn()
     updatedAt: Date;
 
-    @ManyToOne(() => User, (user) => user.bookings, { nullable: false })
-    user: User;
+    @ManyToOne(() => User, (user) => user.bookings, { nullable: true })
+user: User | null;
+
 }
