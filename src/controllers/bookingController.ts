@@ -86,6 +86,51 @@ export const setApartmentDetails = async (req: Request, res: Response) => {
     }
 };
 
+
+
+export const setPersonalDetails = async (req: Request, res: Response) => {
+    const {
+        bookingId,
+        title,
+        firstName,
+        lastName,
+        contactNumber,
+        email,
+        city,
+        street,
+        number,
+        postalCode,
+    } = req.body;
+
+    try {
+        const bookingRepo = AppDataSource.getRepository(Booking);
+        const booking = await bookingRepo.findOne({ where: { id: bookingId } });
+
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        booking.title = title;
+        booking.firstName = firstName;
+        booking.lastName = lastName;
+        booking.contactNumber = contactNumber;
+        booking.email = email;
+
+        booking.address = {
+            street,
+            number,
+            city,
+            postalCode,
+        };
+
+        await bookingRepo.save(booking);
+        res.status(200).json({ message: 'Personal details saved successfully' });
+
+    } catch (error) {
+        res.status(500).json({ message: 'Failed to save personal details', error: error.message });
+    }
+};
+
 export const setDirtLevel = async (req: Request, res: Response) => {
     const { bookingId, dirtLevel } = req.body;
 
