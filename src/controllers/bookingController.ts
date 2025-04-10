@@ -86,6 +86,29 @@ export const setApartmentDetails = async (req: Request, res: Response) => {
     }
 };
 
+export const setDirtLevel = async (req: Request, res: Response) => {
+    const { bookingId, dirtLevel } = req.body;
+
+    try {
+        const bookingRepo = AppDataSource.getRepository(Booking);
+        const booking = await bookingRepo.findOne({ where: { id: bookingId } });
+
+        if (!booking) {
+            return res.status(404).json({ message: 'Booking not found' });
+        }
+
+        booking.dirtLevel = dirtLevel;
+
+        await bookingRepo.save(booking);
+        res.status(200).json({ message: 'Dirt level updated successfully' });
+
+    } catch (error) {
+        console.error("Error setting dirt level:", error);
+        res.status(500).json({ message: 'Failed to update dirt level', error: error.message });
+    }
+};
+
+
 
 export const getProfile = async (req: Request, res: Response) => {
     try {
