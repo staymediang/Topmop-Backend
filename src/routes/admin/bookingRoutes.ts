@@ -13,7 +13,8 @@ import {
     getCompletedBookings,
     getNewBookings,
     getAllBookings,
-    setDirtLevel
+    setDirtLevel,
+    setPersonalDetails
 } from '../../controllers/bookingController';
 import {  isBookingManager, verifyToken } from "../../middleware/authMiddleware";
 
@@ -22,6 +23,7 @@ const router = express.Router();
 // Define the routes for booking operations
 router.post('/frequency',  setBookingPreferences);
 router.post('/requirements', setApartmentDetails);
+router.post('/personal-details', setPersonalDetails);
 router.post('/additional-info', setDirtLevel);
 
 // User profile related routes
