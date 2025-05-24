@@ -10,6 +10,7 @@ const router = express_1.default.Router();
 // Define the routes for booking operations
 router.post('/frequency', bookingController_1.setBookingPreferences);
 router.post('/requirements', bookingController_1.setApartmentDetails);
+router.post('/personal-details', bookingController_1.setPersonalDetails);
 router.post('/additional-info', bookingController_1.setDirtLevel);
 // User profile related routes
 router.get('/profile', bookingController_1.getProfile);
